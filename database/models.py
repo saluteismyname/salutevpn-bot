@@ -18,7 +18,7 @@ class User(Base):
     expires_at_vless: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at_wireguard: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    wg_client_id: Mapped[str | None] = mapped_column(String(255))
+    remnawave_uuid: Mapped[str | None] = mapped_column(String(255))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now()) 
     updated_at: Mapped[datetime] = mapped_column(
