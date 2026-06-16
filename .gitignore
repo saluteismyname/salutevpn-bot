@@ -16,3 +16,5 @@ __pycache__/
 # Системные файлы Windows
 .DS_Store
 Thumbs.db
+
+bot.log

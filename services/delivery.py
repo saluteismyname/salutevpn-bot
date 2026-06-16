@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Order, User
 from payments import prices
-from services.remnawave import create_user_remnawave
+from services.remnawave import create_user_remnawave, edit_user_remnawave
 from services.wg_easy import create_user_wg_easy, edit_user_wg_easy
 from aiohttp import web
 
@@ -39,8 +39,7 @@ async def process_vpn_delivery(
     user_query = select(User).where(User.telegram_id == order.telegram_id)
     user_result = await session.execute(user_query)
     user = user_result.scalar_one()
-    user_telegram_id = user.telegram_id
-
+    
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     months_to_add = relativedelta(months=order.months)
     
@@ -61,13 +60,24 @@ async def process_vpn_delivery(
             return False 
 
         expires_at = user.expires_at_vless.isoformat() # API запрос принимает только iso формат
-        # Создаем пользователя в Remnawave
-        try:
-            user = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id)
-            print(user)
-        except Exception as e:
-            logger.error(f"Ошибка создания пользователя в Remnawave: {e}")
-            return False
+        # Создаем пользователя в Remnawave или редактирование
+        if not user.remnawave_uuid:
+            try:
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id)
+                user.remnawave_uuid = response["response"]["uuid"]
+                try:
+                    await session.commit()
+                except Exception as e:
+                    logger.error(f"Ошибка добавления uuid в базу данных")
+            except Exception as e:
+                logger.error(f"Ошибка создания пользователя в Remnawave: {e}")
+                return False
+        else:
+            try:
+                print(user.expires_at_vless)
+                await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=user.expires_at_vless)
+            except Exception as e:
+                logger.error(f"Ошибка редактирования пользователя: {e}")
         # Отправляем сообщение пользователю
         try:
             moscow_time = user.expires_at_vless + timedelta(hours=3)
@@ -85,7 +95,7 @@ async def process_vpn_delivery(
 
             return True
         except Exception as e:
-            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user}: {e}")
+            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
             return True
     else:
         if not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
@@ -140,5 +150,5 @@ async def process_vpn_delivery(
 
             return True
         except Exception as e:
-            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user_telegram_id}: {e}")
+            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
             return False
