@@ -98,11 +98,16 @@ async def process_vpn_delivery(
             logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
             return True
     else:
-        if not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
+        if not user.wg_id: # not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
             expires_at_fix = None
             user.expires_at_wireguard = now + months_to_add
             try:
-                await create_user_wg_easy(user.telegram_id, months_to_add)
+                wg_user = await create_user_wg_easy(user.telegram_id, months_to_add)
+                user.wg_id = wg_user
+                try:
+                    await session.commit()
+                except Exception as e:
+                    logger.error(f"Ошибка добавления wg_id в базу данных")
             except Exception as e:
                 logger.error(f"Ошибка создания пользователя в WG Easy: {e}")
                 error_details = traceback.format_exc()

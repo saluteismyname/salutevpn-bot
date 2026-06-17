@@ -42,6 +42,18 @@ async def create_user_wg_easy(telegram_id: int, months_to_add: datetime):
             json={"name": name}
         )
 
+        get_response = await client.get("/api/wireguard/client")
+
+        clients = get_response.json()
+            
+        pointed_user = None
+        
+        for pointed_client in clients:
+            if pointed_client['name'] == name:
+                pointed_user = pointed_client
+
+        return pointed_user['id']
+
 async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, months_to_add: datetime, expires_at_wireguard: datetime):
 
     async with httpx.AsyncClient(base_url=url) as client:
