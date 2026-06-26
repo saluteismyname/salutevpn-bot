@@ -59,14 +59,12 @@ def get_instruction_kb() -> InlineKeyboardMarkup:
 def get_vless_instruction_kb() -> InlineKeyboardMarkup:
 
     kb = InlineKeyboardBuilder()
-    kb.button(text="🔙 Назад", callback_data="choose_the_type_instruction")
 
     return kb.as_markup()
 
 def get_wireguard_instruction_kb() -> InlineKeyboardMarkup:
 
     kb = InlineKeyboardBuilder()
-    kb.button(text="🔙 Назад", callback_data="choose_the_type_instruction")
 
     return kb.as_markup()
 

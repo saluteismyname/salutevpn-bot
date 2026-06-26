@@ -31764,3 +31764,705 @@ WHERE users.telegram_id = ?
 2026-06-17 14:41:13,511 - sqlalchemy.engine.Engine - INFO - [generated in 0.00037s] ('2027-12-17 11:40:33.971922', 8038217784)
 2026-06-17 14:41:13,512 - sqlalchemy.engine.Engine - INFO - COMMIT
 2026-06-17 14:41:13,554 - services.delivery - INFO - Подписка для пользователя 8038217784 по заказу 31c49bae-000f-5000-b000-1050ca54d052 и типом VPN WireGuard успешно обновлена!
+2026-06-26 10:46:21,780 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:46:21,781 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-06-26 10:46:21,782 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 10:46:21,786 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-06-26 10:46:21,787 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 10:46:21,788 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:55:46,191 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:55:46 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:55:46,194 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:55:46,202 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:55:46,203 - sqlalchemy.engine.Engine - INFO - [generated in 0.00051s] (1649647307,)
+2026-06-26 10:55:46,207 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (telegram_id, username, is_active_vpn) VALUES (?, ?, ?)
+2026-06-26 10:55:46,207 - sqlalchemy.engine.Engine - INFO - [generated in 0.00045s] (1649647307, 'saluteismyname', 0)
+2026-06-26 10:55:46,209 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:55:47,689 - aiogram.event - INFO - Update id=344442998 is handled. Duration 1496 ms by bot id=7980775296
+2026-06-26 10:55:49,303 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:55:49 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:55:49,304 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:55:49,305 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:55:49,305 - sqlalchemy.engine.Engine - INFO - [cached since 3.103s ago] (1649647307,)
+2026-06-26 10:55:49,306 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:55:49,532 - aiogram.event - INFO - Update id=344442999 is handled. Duration 227 ms by bot id=7980775296
+2026-06-26 10:55:50,804 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:55:50 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:55:50,805 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:55:50,806 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:55:50,806 - sqlalchemy.engine.Engine - INFO - [cached since 4.604s ago] (1649647307,)
+2026-06-26 10:55:50,808 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:55:53,009 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:55:53,012 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 10:55:53,013 - sqlalchemy.engine.Engine - INFO - [generated in 0.00041s] (1649647307, '31d04471-000f-5001-9000-1fcfb46f4500', 'vless', 12, 700, 'pending')
+2026-06-26 10:55:53,016 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:55:53,144 - aiogram.event - INFO - Update id=344443000 is handled. Duration 2339 ms by bot id=7980775296
+2026-06-26 10:56:13,982 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:13 +0300] "UNKNOWN / HTTP/1.0" 400 226 "-" "-"
+2026-06-26 10:56:13,984 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:13 +0300] "UNKNOWN / HTTP/1.0" 400 226 "-" "-"
+2026-06-26 10:56:17,449 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:17,451 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 10:56:17,451 - sqlalchemy.engine.Engine - INFO - [generated in 0.00075s] ('31d04471-000f-5001-9000-1fcfb46f4500',)
+2026-06-26 10:56:17,452 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:17,454 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:16 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 10:56:17,455 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:17,457 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 10:56:17,458 - sqlalchemy.engine.Engine - INFO - [generated in 0.00049s] ('paid', 3)
+2026-06-26 10:56:17,489 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:17,489 - sqlalchemy.engine.Engine - INFO - [generated in 0.00051s] (1649647307,)
+2026-06-26 10:56:17,491 - sqlalchemy.engine.Engine - INFO - UPDATE users SET is_active_vpn=?, expires_at_vless=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 10:56:17,492 - sqlalchemy.engine.Engine - INFO - [generated in 0.00041s] (1, '2027-06-26 07:56:17.490905', 1649647307)
+2026-06-26 10:56:17,493 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:56:17,504 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d04471-000f-5001-9000-1fcfb46f4500 и типом VPN Vless успешно обновлена!
+2026-06-26 10:56:18,988 - httpx - INFO - HTTP Request: POST https://test-site-for-development.site/api/users "HTTP/1.1 201 Created"
+2026-06-26 10:56:18,991 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:18,992 - sqlalchemy.engine.Engine - INFO - UPDATE users SET remnawave_uuid=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 10:56:18,993 - sqlalchemy.engine.Engine - INFO - [generated in 0.00084s] ('591e1b4c-e33a-4a34-aea3-d44044d080e9', 1649647307)
+2026-06-26 10:56:18,997 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:56:24,473 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:24 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:56:24,475 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:24,475 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:24,475 - sqlalchemy.engine.Engine - INFO - [cached since 38.27s ago] (1649647307,)
+2026-06-26 10:56:24,477 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:24,633 - aiogram.event - INFO - Update id=344443001 is handled. Duration 159 ms by bot id=7980775296
+2026-06-26 10:56:25,659 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:25 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:56:25,660 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:25,661 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:25,661 - sqlalchemy.engine.Engine - INFO - [cached since 39.46s ago] (1649647307,)
+2026-06-26 10:56:25,662 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:25,795 - aiogram.event - INFO - Update id=344443002 is handled. Duration 135 ms by bot id=7980775296
+2026-06-26 10:56:26,479 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:26 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:56:26,480 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:26,481 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:26,481 - sqlalchemy.engine.Engine - INFO - [cached since 40.28s ago] (1649647307,)
+2026-06-26 10:56:26,483 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:27,944 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:27,944 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 10:56:27,945 - sqlalchemy.engine.Engine - INFO - [cached since 34.93s ago] (1649647307, '31d04494-000f-5001-9000-1b2b0e6f2ab0', 'vless', 6, 400, 'pending')
+2026-06-26 10:56:27,974 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:56:28,114 - aiogram.event - INFO - Update id=344443003 is handled. Duration 1634 ms by bot id=7980775296
+2026-06-26 10:56:35,369 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:35,369 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 10:56:35,369 - sqlalchemy.engine.Engine - INFO - [cached since 17.92s ago] ('31d04494-000f-5001-9000-1b2b0e6f2ab0',)
+2026-06-26 10:56:35,370 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:35,371 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:34 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 10:56:35,373 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:35,373 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 10:56:35,373 - sqlalchemy.engine.Engine - INFO - [cached since 17.92s ago] ('paid', 4)
+2026-06-26 10:56:35,377 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:35,377 - sqlalchemy.engine.Engine - INFO - [cached since 17.89s ago] (1649647307,)
+2026-06-26 10:56:35,380 - sqlalchemy.engine.Engine - INFO - UPDATE users SET expires_at_vless=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 10:56:35,380 - sqlalchemy.engine.Engine - INFO - [generated in 0.00033s] ('2027-12-26 07:56:17.490905', 1649647307)
+2026-06-26 10:56:35,381 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:56:35,394 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d04494-000f-5001-9000-1b2b0e6f2ab0 и типом VPN Vless успешно обновлена!
+2026-06-26 10:56:36,076 - httpx - INFO - HTTP Request: PATCH https://test-site-for-development.site/api/users "HTTP/1.1 200 OK"
+2026-06-26 10:56:41,838 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:41 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:56:41,839 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:41,840 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:41,840 - sqlalchemy.engine.Engine - INFO - [cached since 55.64s ago] (1649647307,)
+2026-06-26 10:56:41,841 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:42,009 - aiogram.event - INFO - Update id=344443004 is handled. Duration 170 ms by bot id=7980775296
+2026-06-26 10:56:53,989 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:56:53 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:56:53,990 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:56:53,991 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:56:53,991 - sqlalchemy.engine.Engine - INFO - [cached since 67.79s ago] (1649647307,)
+2026-06-26 10:56:53,992 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:56:54,192 - aiogram.event - INFO - Update id=344443005 is handled. Duration 202 ms by bot id=7980775296
+2026-06-26 10:57:07,932 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:07 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:07,933 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:07,934 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:07,935 - sqlalchemy.engine.Engine - INFO - [cached since 81.73s ago] (1649647307,)
+2026-06-26 10:57:07,936 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:08,069 - aiogram.event - INFO - Update id=344443006 is handled. Duration 136 ms by bot id=7980775296
+2026-06-26 10:57:09,140 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:09 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:09,141 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:09,142 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:09,142 - sqlalchemy.engine.Engine - INFO - [cached since 82.94s ago] (1649647307,)
+2026-06-26 10:57:09,143 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:09,358 - aiogram.event - INFO - Update id=344443007 is handled. Duration 217 ms by bot id=7980775296
+2026-06-26 10:57:10,260 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:10 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:10,261 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:10,262 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:10,262 - sqlalchemy.engine.Engine - INFO - [cached since 84.06s ago] (1649647307,)
+2026-06-26 10:57:10,263 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:12,100 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:12,100 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 10:57:12,101 - sqlalchemy.engine.Engine - INFO - [cached since 79.09s ago] (1649647307, '31d044c0-000f-5000-8000-1e3c9438cae6', 'wireguard', 12, 700, 'pending')
+2026-06-26 10:57:12,130 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:57:12,714 - aiogram.event - INFO - Update id=344443008 is handled. Duration 2452 ms by bot id=7980775296
+2026-06-26 10:57:14,049 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:14 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:14,050 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:14,051 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:14,051 - sqlalchemy.engine.Engine - INFO - [cached since 87.85s ago] (1649647307,)
+2026-06-26 10:57:14,052 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:14,261 - aiogram.event - INFO - Update id=344443009 is handled. Duration 210 ms by bot id=7980775296
+2026-06-26 10:57:15,420 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:15 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:15,421 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:15,422 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:15,422 - sqlalchemy.engine.Engine - INFO - [cached since 89.22s ago] (1649647307,)
+2026-06-26 10:57:15,423 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:15,640 - aiogram.event - INFO - Update id=344443010 is handled. Duration 219 ms by bot id=7980775296
+2026-06-26 10:57:53,260 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:57:53 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:57:53,261 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:57:53,261 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:57:53,262 - sqlalchemy.engine.Engine - INFO - [cached since 127.1s ago] (1649647307,)
+2026-06-26 10:57:53,263 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:57:53,265 - aiogram.event - INFO - Update id=344443011 is not handled. Duration 4 ms by bot id=7980775296
+2026-06-26 10:58:08,152 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:08 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:08,153 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:08,153 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:08,153 - sqlalchemy.engine.Engine - INFO - [cached since 142s ago] (1649647307,)
+2026-06-26 10:58:08,155 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:08,691 - aiogram.event - INFO - Update id=344443012 is handled. Duration 538 ms by bot id=7980775296
+2026-06-26 10:58:09,997 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:09 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:09,998 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:09,999 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:09,999 - sqlalchemy.engine.Engine - INFO - [cached since 143.8s ago] (1649647307,)
+2026-06-26 10:58:10,000 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:10,151 - aiogram.event - INFO - Update id=344443013 is handled. Duration 153 ms by bot id=7980775296
+2026-06-26 10:58:11,456 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:11 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:11,458 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:11,458 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:11,458 - sqlalchemy.engine.Engine - INFO - [cached since 145.3s ago] (1649647307,)
+2026-06-26 10:58:11,460 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:13,203 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:13,204 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 10:58:13,204 - sqlalchemy.engine.Engine - INFO - [cached since 140.2s ago] (1649647307, '31d044fd-000f-5001-9000-1d60a4978304', 'wireguard', 12, 700, 'pending')
+2026-06-26 10:58:13,234 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:58:13,389 - aiogram.event - INFO - Update id=344443014 is handled. Duration 1932 ms by bot id=7980775296
+2026-06-26 10:58:25,983 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:25,984 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 10:58:25,984 - sqlalchemy.engine.Engine - INFO - [cached since 128.5s ago] ('31d044fd-000f-5001-9000-1d60a4978304',)
+2026-06-26 10:58:25,984 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:25,986 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:24 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 10:58:25,988 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:25,989 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 10:58:25,989 - sqlalchemy.engine.Engine - INFO - [cached since 128.5s ago] ('paid', 6)
+2026-06-26 10:58:26,019 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:26,020 - sqlalchemy.engine.Engine - INFO - [cached since 128.5s ago] (1649647307,)
+2026-06-26 10:58:28,484 - httpx - INFO - HTTP Request: POST https://wg01.test-site-for-development.ru:8443/api/session "HTTP/1.1 200 OK"
+2026-06-26 10:58:29,232 - httpx - INFO - HTTP Request: POST https://wg01.test-site-for-development.ru:8443/api/wireguard/client "HTTP/1.1 200 OK"
+2026-06-26 10:58:29,511 - httpx - INFO - HTTP Request: GET https://wg01.test-site-for-development.ru:8443/api/wireguard/client "HTTP/1.1 200 OK"
+2026-06-26 10:58:29,664 - sqlalchemy.engine.Engine - INFO - UPDATE users SET expires_at_wireguard=?, wg_id=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 10:58:29,664 - sqlalchemy.engine.Engine - INFO - [generated in 0.00041s] ('2027-06-26 07:58:26.021726', 'a913acfc-0a77-4fc5-96fd-5926716ea295', 1649647307)
+2026-06-26 10:58:29,665 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:58:29,704 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:29,704 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:58:29,705 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d044fd-000f-5001-9000-1d60a4978304 и типом VPN WireGuard успешно обновлена!
+2026-06-26 10:58:40,225 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:40 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:40,226 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:40,226 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:40,227 - sqlalchemy.engine.Engine - INFO - [cached since 174s ago] (1649647307,)
+2026-06-26 10:58:40,228 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:40,392 - aiogram.event - INFO - Update id=344443015 is handled. Duration 166 ms by bot id=7980775296
+2026-06-26 10:58:46,900 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:46 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:46,902 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:46,902 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:46,902 - sqlalchemy.engine.Engine - INFO - [cached since 180.7s ago] (1649647307,)
+2026-06-26 10:58:46,903 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:47,126 - aiogram.event - INFO - Update id=344443016 is handled. Duration 225 ms by bot id=7980775296
+2026-06-26 10:58:48,128 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:48 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 10:58:48,129 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:48,130 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:48,130 - sqlalchemy.engine.Engine - INFO - [cached since 181.9s ago] (1649647307,)
+2026-06-26 10:58:48,132 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:49,643 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:49,644 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 10:58:49,644 - sqlalchemy.engine.Engine - INFO - [cached since 176.6s ago] (1649647307, '31d04522-000f-5000-b000-1c3b7f00cdd0', 'wireguard', 6, 400, 'pending')
+2026-06-26 10:58:49,673 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:58:49,826 - aiogram.event - INFO - Update id=344443017 is handled. Duration 1697 ms by bot id=7980775296
+2026-06-26 10:58:57,160 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:57,161 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 10:58:57,161 - sqlalchemy.engine.Engine - INFO - [cached since 159.7s ago] ('31d04522-000f-5000-b000-1c3b7f00cdd0',)
+2026-06-26 10:58:57,161 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 10:58:57,163 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:10:58:56 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 10:58:57,164 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 10:58:57,165 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 10:58:57,165 - sqlalchemy.engine.Engine - INFO - [cached since 159.7s ago] ('paid', 7)
+2026-06-26 10:58:57,194 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 10:58:57,194 - sqlalchemy.engine.Engine - INFO - [cached since 159.7s ago] (1649647307,)
+2026-06-26 10:58:58,621 - httpx - INFO - HTTP Request: POST https://wg01.test-site-for-development.ru:8443/api/session "HTTP/1.1 200 OK"
+2026-06-26 10:58:58,798 - httpx - INFO - HTTP Request: GET https://wg01.test-site-for-development.ru:8443/api/wireguard/client "HTTP/1.1 200 OK"
+2026-06-26 10:58:59,654 - httpx - INFO - HTTP Request: PUT https://wg01.test-site-for-development.ru:8443/api/wireguard/client/a913acfc-0a77-4fc5-96fd-5926716ea295/name "HTTP/1.1 200 OK"
+2026-06-26 10:58:59,658 - sqlalchemy.engine.Engine - INFO - UPDATE users SET expires_at_wireguard=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 10:58:59,658 - sqlalchemy.engine.Engine - INFO - [generated in 0.00036s] ('2027-12-26 07:58:26.021726', 1649647307)
+2026-06-26 10:58:59,660 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 10:58:59,673 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d04522-000f-5000-b000-1c3b7f00cdd0 и типом VPN WireGuard успешно обновлена!
+2026-06-26 11:00:19,335 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:00:19 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:00:19,337 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:00:19,337 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:00:19,337 - sqlalchemy.engine.Engine - INFO - [cached since 273.1s ago] (1649647307,)
+2026-06-26 11:00:19,339 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:00:20,028 - aiogram.event - INFO - Update id=344443018 is handled. Duration 691 ms by bot id=7980775296
+2026-06-26 11:02:26,107 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:02:26,107 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-06-26 11:02:26,108 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:02:26,110 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-06-26 11:02:26,110 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:02:26,111 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:02:30,155 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:02:30 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:02:30,157 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:02:30,162 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:02:30,162 - sqlalchemy.engine.Engine - INFO - [generated in 0.00052s] (1649647307,)
+2026-06-26 11:02:30,164 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:02:30,308 - aiogram.event - INFO - Update id=344443019 is handled. Duration 152 ms by bot id=7980775296
+2026-06-26 11:02:31,688 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:02:31 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:02:31,690 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:02:31,690 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:02:31,690 - sqlalchemy.engine.Engine - INFO - [cached since 1.529s ago] (1649647307,)
+2026-06-26 11:02:31,692 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:02:31,694 - aiogram.event - INFO - Update id=344443020 is not handled. Duration 4 ms by bot id=7980775296
+2026-06-26 11:02:31,694 - aiogram.event - ERROR - Cause exception while process update id=344443020 by bot id=7980775296
+NameError: name 'get_wireguard_instruction_kb' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 425, in _feed_webhook_update
+    return await self.feed_update(bot, update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 164, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\error.py", line 27, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\user_context.py", line 58, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\fsm\middleware.py", line 43, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\middlewares\db.py", line 64, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 283, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 163, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 155, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 183, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\main.py", line 236, in callback_instruction_chosen
+    reply_markup=get_wireguard_instruction_kb()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_wireguard_instruction_kb' is not defined
+2026-06-26 11:02:31,726 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-15' coro=<BaseRequestHandler._background_feed_update() done, defined at C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\webhook\aiohttp_server.py:139> exception=NameError("name 'get_wireguard_instruction_kb' is not defined")>
+Traceback (most recent call last):
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\webhook\aiohttp_server.py", line 140, in _background_feed_update
+    result = await self.dispatcher.feed_raw_update(bot=bot, update=update, **self.data)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 195, in feed_raw_update
+    return await self._feed_webhook_update(bot=bot, update=parsed_update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 425, in _feed_webhook_update
+    return await self.feed_update(bot, update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 164, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\error.py", line 27, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\user_context.py", line 58, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\fsm\middleware.py", line 43, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\middlewares\db.py", line 64, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 283, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 163, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 155, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 183, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\main.py", line 236, in callback_instruction_chosen
+    reply_markup=get_wireguard_instruction_kb()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_wireguard_instruction_kb' is not defined
+2026-06-26 11:03:06,324 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:06,325 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-06-26 11:03:06,325 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:03:06,326 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-06-26 11:03:06,326 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:03:06,329 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:03:07,792 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:07 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:07,793 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:07,798 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:07,798 - sqlalchemy.engine.Engine - INFO - [generated in 0.00070s] (1649647307,)
+2026-06-26 11:03:07,800 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:08,103 - aiogram.event - INFO - Update id=344443021 is handled. Duration 310 ms by bot id=7980775296
+2026-06-26 11:03:09,694 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:09 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:09,695 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:09,696 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:09,696 - sqlalchemy.engine.Engine - INFO - [cached since 1.898s ago] (1649647307,)
+2026-06-26 11:03:09,697 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:09,928 - aiogram.event - INFO - Update id=344443022 is handled. Duration 233 ms by bot id=7980775296
+2026-06-26 11:03:10,722 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:10 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:10,723 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:10,723 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:10,724 - sqlalchemy.engine.Engine - INFO - [cached since 2.926s ago] (1649647307,)
+2026-06-26 11:03:10,725 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:10,728 - aiogram.event - INFO - Update id=344443023 is not handled. Duration 5 ms by bot id=7980775296
+2026-06-26 11:03:10,728 - aiogram.event - ERROR - Cause exception while process update id=344443023 by bot id=7980775296
+NameError: name 'get_wireguard_instruction_kb' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 425, in _feed_webhook_update
+    return await self.feed_update(bot, update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 164, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\error.py", line 27, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\user_context.py", line 58, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\fsm\middleware.py", line 43, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\middlewares\db.py", line 64, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 283, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 163, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 155, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 183, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\main.py", line 236, in callback_instruction_chosen
+    reply_markup=get_wireguard_instruction_kb()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_wireguard_instruction_kb' is not defined
+2026-06-26 11:03:10,732 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-19' coro=<BaseRequestHandler._background_feed_update() done, defined at C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\webhook\aiohttp_server.py:139> exception=NameError("name 'get_wireguard_instruction_kb' is not defined")>
+Traceback (most recent call last):
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\webhook\aiohttp_server.py", line 140, in _background_feed_update
+    result = await self.dispatcher.feed_raw_update(bot=bot, update=update, **self.data)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 195, in feed_raw_update
+    return await self._feed_webhook_update(bot=bot, update=parsed_update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 425, in _feed_webhook_update
+    return await self.feed_update(bot, update, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 164, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\error.py", line 27, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\middlewares\user_context.py", line 58, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\fsm\middleware.py", line 43, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\middlewares\db.py", line 64, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 283, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 163, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 155, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\router.py", line 183, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\Андрей\Desktop\Salute VPN\main.py", line 236, in callback_instruction_chosen
+    reply_markup=get_wireguard_instruction_kb()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_wireguard_instruction_kb' is not defined
+2026-06-26 11:03:27,131 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:27,131 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-06-26 11:03:27,132 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:03:27,133 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-06-26 11:03:27,133 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-06-26 11:03:27,135 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:03:28,046 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:28 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:28,048 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:28,053 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:28,053 - sqlalchemy.engine.Engine - INFO - [generated in 0.00046s] (1649647307,)
+2026-06-26 11:03:28,055 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:28,212 - aiogram.event - INFO - Update id=344443024 is handled. Duration 165 ms by bot id=7980775296
+2026-06-26 11:03:29,446 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:29 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:29,447 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:29,448 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:29,448 - sqlalchemy.engine.Engine - INFO - [cached since 1.395s ago] (1649647307,)
+2026-06-26 11:03:29,449 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:29,782 - aiogram.event - INFO - Update id=344443025 is handled. Duration 335 ms by bot id=7980775296
+2026-06-26 11:03:32,449 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:32 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:32,450 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:32,450 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:32,451 - sqlalchemy.engine.Engine - INFO - [cached since 4.398s ago] (1649647307,)
+2026-06-26 11:03:32,452 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:32,587 - aiogram.event - INFO - Update id=344443026 is handled. Duration 137 ms by bot id=7980775296
+2026-06-26 11:03:33,589 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:03:33 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:03:33,590 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:03:33,591 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:03:33,592 - sqlalchemy.engine.Engine - INFO - [cached since 5.539s ago] (1649647307,)
+2026-06-26 11:03:33,593 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:03:33,743 - aiogram.event - INFO - Update id=344443027 is handled. Duration 152 ms by bot id=7980775296
+2026-06-26 11:28:30,356 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:30 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:28:30,357 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:30,358 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:28:30,358 - sqlalchemy.engine.Engine - INFO - [cached since 1502s ago] (1649647307,)
+2026-06-26 11:28:30,360 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:28:30,856 - aiogram.event - INFO - Update id=344443028 is handled. Duration 499 ms by bot id=7980775296
+2026-06-26 11:28:32,124 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:32 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:28:32,125 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:32,126 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:28:32,126 - sqlalchemy.engine.Engine - INFO - [cached since 1504s ago] (1649647307,)
+2026-06-26 11:28:32,127 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:28:32,295 - aiogram.event - INFO - Update id=344443029 is handled. Duration 169 ms by bot id=7980775296
+2026-06-26 11:28:33,670 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:33 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:28:33,671 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:33,672 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:28:33,672 - sqlalchemy.engine.Engine - INFO - [cached since 1506s ago] (1649647307,)
+2026-06-26 11:28:33,673 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:28:36,325 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:36,327 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 11:28:36,328 - sqlalchemy.engine.Engine - INFO - [generated in 0.00028s] (1649647307, '31d04c1c-000f-5001-8000-17fc31e8412a', 'vless', 6, 400, 'pending')
+2026-06-26 11:28:36,357 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:28:36,497 - aiogram.event - INFO - Update id=344443030 is handled. Duration 2826 ms by bot id=7980775296
+2026-06-26 11:28:45,558 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:45 +0300] "UNKNOWN / HTTP/1.0" 400 226 "-" "-"
+2026-06-26 11:28:45,560 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:45 +0300] "UNKNOWN / HTTP/1.0" 400 226 "-" "-"
+2026-06-26 11:28:56,512 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:56,514 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 11:28:56,514 - sqlalchemy.engine.Engine - INFO - [generated in 0.00051s] ('31d04c1c-000f-5001-8000-17fc31e8412a',)
+2026-06-26 11:28:56,514 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:28:56,516 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:28:53 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 11:28:56,518 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:28:56,520 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 11:28:56,520 - sqlalchemy.engine.Engine - INFO - [generated in 0.00045s] ('paid', 8)
+2026-06-26 11:28:56,551 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:28:56,552 - sqlalchemy.engine.Engine - INFO - [generated in 0.00051s] (1649647307,)
+2026-06-26 11:28:56,554 - sqlalchemy.engine.Engine - INFO - UPDATE users SET expires_at_vless=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 11:28:56,554 - sqlalchemy.engine.Engine - INFO - [generated in 0.00036s] ('2028-06-26 07:56:17.490905', 1649647307)
+2026-06-26 11:28:56,555 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:28:56,565 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d04c1c-000f-5001-8000-17fc31e8412a и типом VPN Vless успешно обновлена!
+2026-06-26 11:28:57,891 - httpx - INFO - HTTP Request: PATCH https://test-site-for-development.site/api/users "HTTP/1.1 200 OK"
+2026-06-26 11:31:07,023 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:31:07 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:31:07,025 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:07,025 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:31:07,025 - sqlalchemy.engine.Engine - INFO - [cached since 1659s ago] (1649647307,)
+2026-06-26 11:31:07,027 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:31:07,728 - aiogram.event - INFO - Update id=344443031 is handled. Duration 704 ms by bot id=7980775296
+2026-06-26 11:31:11,013 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:31:11 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:31:11,014 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:11,014 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:31:11,015 - sqlalchemy.engine.Engine - INFO - [cached since 1663s ago] (1649647307,)
+2026-06-26 11:31:11,016 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:31:11,142 - aiogram.event - INFO - Update id=344443032 is handled. Duration 128 ms by bot id=7980775296
+2026-06-26 11:31:11,968 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:31:11 +0300] "POST /webhook/telegram HTTP/1.1" 200 160 "-" "-"
+2026-06-26 11:31:11,969 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:11,970 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:31:11,970 - sqlalchemy.engine.Engine - INFO - [cached since 1664s ago] (1649647307,)
+2026-06-26 11:31:11,972 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:31:14,759 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:14,760 - sqlalchemy.engine.Engine - INFO - INSERT INTO orders (telegram_id, payment_id, vpn_type, months, amount_value, status) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at
+2026-06-26 11:31:14,760 - sqlalchemy.engine.Engine - INFO - [cached since 158.4s ago] (1649647307, '31d04cbb-000f-5001-8000-165757563a66', 'vless', 6, 400, 'pending')
+2026-06-26 11:31:14,764 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:31:14,919 - aiogram.event - INFO - Update id=344443033 is handled. Duration 2950 ms by bot id=7980775296
+2026-06-26 11:31:47,987 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:47,988 - sqlalchemy.engine.Engine - INFO - SELECT orders.id, orders.telegram_id, orders.payment_id, orders.vpn_type, orders.months, orders.amount_value, orders.status, orders.created_at, orders.updated_at 
+FROM orders 
+WHERE orders.payment_id = ?
+2026-06-26 11:31:47,988 - sqlalchemy.engine.Engine - INFO - [cached since 171.5s ago] ('31d04cbb-000f-5001-8000-165757563a66',)
+2026-06-26 11:31:47,988 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-06-26 11:31:47,989 - aiohttp.access - INFO - 127.0.0.1 [26/Jun/2026:11:31:45 +0300] "POST /webhook/yookassa HTTP/1.1" 200 111 "-" "AHC/2.1"
+2026-06-26 11:31:47,991 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-06-26 11:31:47,992 - sqlalchemy.engine.Engine - INFO - UPDATE orders SET status=?, updated_at=CURRENT_TIMESTAMP WHERE orders.id = ?
+2026-06-26 11:31:47,992 - sqlalchemy.engine.Engine - INFO - [cached since 171.5s ago] ('paid', 9)
+2026-06-26 11:31:48,021 - sqlalchemy.engine.Engine - INFO - SELECT users.telegram_id, users.username, users.is_active_vpn, users.expires_at_vless, users.expires_at_wireguard, users.remnawave_uuid, users.wg_id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.telegram_id = ?
+2026-06-26 11:31:48,021 - sqlalchemy.engine.Engine - INFO - [cached since 171.5s ago] (1649647307,)
+2026-06-26 11:31:48,022 - sqlalchemy.engine.Engine - INFO - UPDATE users SET expires_at_vless=?, updated_at=CURRENT_TIMESTAMP WHERE users.telegram_id = ?
+2026-06-26 11:31:48,023 - sqlalchemy.engine.Engine - INFO - [cached since 171.5s ago] ('2028-12-26 07:56:17.490905', 1649647307)
+2026-06-26 11:31:48,024 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-06-26 11:31:48,035 - services.delivery - INFO - Подписка для пользователя 1649647307 по заказу 31d04cbb-000f-5001-8000-165757563a66 и типом VPN Vless успешно обновлена!
+2026-06-26 11:31:49,229 - httpx - INFO - HTTP Request: PATCH https://test-site-for-development.site/api/users "HTTP/1.1 200 OK"
