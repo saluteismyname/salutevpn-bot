@@ -42,3 +42,13 @@ async def edit_user_remnawave(remnawave_uuid: str, expires_at: datetime):
                 "expireAt": expires_at.isoformat()
             }
         )
+
+async def get_user_remnawave(remnawave_uuid: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"https://test-site-for-development.site/api/users/{remnawave_uuid}",
+            headers={
+            "Authorization": f"Bearer {remnawave_token}"
+            }
+        )
+
+        return response.json()

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     wg_easy_password: SecretStr
 
+    wg_easy_url: str
+
     # Начиная со второй версии pydantic, настройки класса настроек задаются
     # через model_config
     # В данном случае будет использоваться файла .env, который будет прочитан

@@ -1,4 +1,7 @@
 SUBSCRIPTION_PRICES = {
-    "6_months": 400,
-    "12_months": 700
+    "7_days": 50,
+    "30_days": 100,
+    "90_days": 249,
+    "180_days": 400,
+    "365_days": 700
 }

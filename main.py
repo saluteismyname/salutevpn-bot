@@ -10,7 +10,7 @@ import os
 import json
 from random import random
 from aiohttp import web
-from keyboards import get_start_kb, get_type_buy_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard, get_payment_6_kb_vless, get_payment_12_kb_vless, get_payment_6_kb_wireguard, get_payment_12_kb_wireguard
+from keyboards import get_start_kb, get_type_buy_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard, get_payment_180_kb_vless, get_payment_180_kb_wireguard, get_payment_30_kb_vless, get_payment_30_kb_wireguard, get_payment_365_kb_vless, get_payment_365_kb_wireguard, get_payment_7_kb_vless, get_payment_7_kb_wireguard, get_payment_90_kb_vless, get_payment_90_kb_wireguard
 from config import config
 from aiogram import Bot, Dispatcher
 from aiogram import F
@@ -161,44 +161,104 @@ async def callback_period_message(callback: CallbackQuery):
         "Выберите срок подписки: ",
         reply_markup=get_buy_period_kb_wireguard()
     )
-        
-@dp.callback_query(F.data == "buy_6_months_vless")
-async def callback_buy_6_months(callback: CallbackQuery):
+
+@dp.callback_query(F.data == "buy_7_days_vless")
+async def callback_buy_7_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_6_kb_vless(telegram_id=telegram_id)
+    kb = await get_payment_7_kb_vless(telegram_id=telegram_id)
 
     await callback.message.edit_text(
-        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['6_months']}₽",
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_30_days_vless")
+async def callback_buy_30_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_30_kb_vless(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['30_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_90_days_vless")
+async def callback_buy_90_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_90_kb_vless(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['90_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_180_days_vless")
+async def callback_buy_180_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_180_kb_vless(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['180_days']}₽",
         reply_markup=kb
     )
     
-@dp.callback_query(F.data == "buy_12_months_vless")
-async def callback_buy_12_months(callback: CallbackQuery):
+@dp.callback_query(F.data == "buy_365_days_vless")
+async def callback_buy_365_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_12_kb_vless(telegram_id=telegram_id)
+    kb = await get_payment_365_kb_vless(telegram_id=telegram_id)
 
     await callback.message.edit_text(
-        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['12_months']}₽",
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['365_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_7_days_wireguard")
+async def callback_buy_7_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_7_kb_wireguard(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_30_days_wireguard")
+async def callback_buy_30_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_30_kb_wireguard(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['30_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_90_days_wireguard")
+async def callback_buy_90_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_90_kb_wireguard(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['90_days']}₽",
+        reply_markup=kb
+    )
+
+@dp.callback_query(F.data == "buy_180_days_wireguard")
+async def callback_buy_180_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    kb = await get_payment_180_kb_wireguard(telegram_id=telegram_id)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['180_days']}₽",
         reply_markup=kb
     )
     
-@dp.callback_query(F.data == "buy_6_months_wireguard")
-async def callback_buy_6_months(callback: CallbackQuery):
+@dp.callback_query(F.data == "buy_365_days_wireguard")
+async def callback_buy_365_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_6_kb_wireguard(telegram_id=telegram_id)
+    kb = await get_payment_365_kb_wireguard(telegram_id=telegram_id)
 
     await callback.message.edit_text(
-        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['6_months']}₽",
-        reply_markup=kb
-    )
-    
-@dp.callback_query(F.data == "buy_12_months_wireguard")
-async def callback_buy_12_months(callback: CallbackQuery):
-    telegram_id = callback.from_user.id
-    kb = await get_payment_12_kb_wireguard(telegram_id=telegram_id)
-
-    await callback.message.edit_text(
-        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['12_months']}₽",
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['365_days']}₽",
         reply_markup=kb
     )
     
@@ -207,8 +267,8 @@ async def callback_instruction_chosen(callback: CallbackQuery):
     await callback.message.edit_text(
         "1. Скачайте Happ Plus, V2RayTun, Streisand или V2RayNG\n"
         "2. Скопируйте ссылку-подписку из сообщения о покупке\n"
-        "3. Нажмите +, добавить из буфера обмена\n"
-        "4. Готово!\n",
+        "3. В приложении нажмите +, добавить из буфера обмена\n"
+        "4. Теперь можете наслаждаться интернетом!👐\n",
         reply_markup=get_vless_instruction_kb()
     )
     
@@ -218,9 +278,9 @@ async def callback_instruction_chosen(callback: CallbackQuery):
         "1. Скачайте WireGuard и убедитесь, что подключение по конфигу есть\n"
         "2. Проверьте интернет-соединение\n"
         "3. Если подключение есть, но интернет не работает - дело в провайдере, на стороне конфига всё хорошо\n"
-        "4. Любым текстовым редактором откройте конфиг, и после DNS = 1.1.1.1,8.8.8.8 вставьте следующие значения: (нажмите, что бы скопировать)\n"
+        "4. Любым текстовым редактором откройте конфиг, и после DNS = 1.1.1.1,8.8.8.8 вставьте следующие значения:\n"
 
-        "<code>MTU = 1380\n"
+        "<pre>MTU = 1380\n"
         "Jc = 5\n"
         "Jmin = 2\n"
         "Jmax = 9\n"
@@ -229,7 +289,7 @@ async def callback_instruction_chosen(callback: CallbackQuery):
         "H1 = 1\n"
         "H2 = 2\n"
         "H3 = 3\n"
-        "H4 = 4</code>\n"
+        "H4 = 4</pre>\n"
 
         "5. Импортируйте этот конфиг в AmneziaWG (IOS, Android, Windows, Ubuntu)\n"
         "6. Теперь можете наслаждаться интернетом!👐\n",

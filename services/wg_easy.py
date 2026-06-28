@@ -17,9 +17,9 @@ load_dotenv()
 
 password = config.wg_easy_password.get_secret_value()
 
-url = "https://wg01.test-site-for-development.ru:8443"
+url = config.wg_easy_url
 
-async def create_user_wg_easy(telegram_id: int, months_to_add: datetime):
+async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
     async with httpx.AsyncClient(base_url=url) as client:
         # Авторизация
         login_response = await client.post(
@@ -31,7 +31,7 @@ async def create_user_wg_easy(telegram_id: int, months_to_add: datetime):
             print("Ошибка логина в WG Easy")
             return None
         
-        expires_at = datetime.now(timezone.utc) + months_to_add
+        expires_at = datetime.now(timezone.utc) + days_to_add
 
         expires_at = expires_at.strftime("%d.%m.%Y")
 
@@ -54,7 +54,7 @@ async def create_user_wg_easy(telegram_id: int, months_to_add: datetime):
 
         return pointed_user['id']
 
-async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, months_to_add: datetime, expires_at_wireguard: datetime):
+async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_add: datetime):
 
     async with httpx.AsyncClient(base_url=url) as client:
         # Авторизация
@@ -81,8 +81,29 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, months_t
 
         if pointed_user and expires_at_fix:
             expires_at_pre = datetime.strptime(expires_at_fix, "%d.%m.%Y")
-            time_calculated = expires_at_pre + months_to_add
+            time_calculated = expires_at_pre + days_to_add
             await client.put(
                 f"/api/wireguard/client/{pointed_user['id']}/name",
                 json={"name": f"{time_calculated.strftime("%d.%m.%Y")}_{telegram_id}"}
             )
+
+async def get_user_wg_easy(wg_id: str):
+    
+    async with httpx.AsyncClient(base_url=url) as client:
+        # Авторизация
+        login_response = await client.post(
+            "/api/session",
+            json={"password": password}
+        )
+
+        if login_response.status_code >= 400:
+            print("Ошибка логина в WG Easy")
+            return None
+        
+        response = await client.get(f"/api/wireguard/client/{wg_id}/configuration")
+
+        response.raise_for_status()
+
+        config = response.text
+
+        return config

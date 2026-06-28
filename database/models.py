@@ -39,7 +39,7 @@ class Order(Base):
 
     payment_id: Mapped[str | None] = mapped_column(String(255), unique=True)
     vpn_type: Mapped[str] = mapped_column(String(50))
-    months: Mapped[int] = mapped_column(Integer)
+    days: Mapped[int] = mapped_column(Integer)
     amount_value: Mapped[int] = mapped_column(Integer)
 
     status: Mapped[str] = mapped_column(String(50), default="pending")
