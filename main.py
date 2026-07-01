@@ -265,7 +265,7 @@ async def callback_buy_365_days(callback: CallbackQuery):
 @dp.callback_query(F.data == "vless_instruction")
 async def callback_instruction_chosen(callback: CallbackQuery):
     await callback.message.edit_text(
-        "1. Скачайте Happ Plus, V2RayTun, Streisand или V2RayNG\n"
+        "1. Скачайте Happ Plus, INCY или V2RayTun\n"
         "2. Скопируйте ссылку-подписку из сообщения о покупке\n"
         "3. В приложении нажмите +, добавить из буфера обмена\n"
         "4. Теперь можете наслаждаться интернетом!👐\n",

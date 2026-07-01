@@ -158,8 +158,6 @@ async def process_vpn_delivery(
                 filename=f"Salute_VPN_{user.telegram_id}.conf"
             )
 
-            
-
             if order.days < 30:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
             elif order.days == 30:
@@ -170,11 +168,6 @@ async def process_vpn_delivery(
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
             elif order.days == 365:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
-
-            # await bot.send_message(
-            #     chat_id=user.telegram_id,
-            #     text=msg
-            # )
 
             await bot.send_document(
                 chat_id=user.telegram_id,
