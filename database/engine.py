@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from database.models import Base
+import os
 
-engine = create_async_engine('sqlite+aiosqlite:///database.db', echo=True)
+engine = create_async_engine(f"postgresql+asyncpg://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}", echo=True)
 
 # Фабрика сессий
 session_maker = async_sessionmaker(engine, expire_on_commit=False)

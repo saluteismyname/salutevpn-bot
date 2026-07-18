@@ -15,26 +15,29 @@ class ShadowRegistrationMiddleware(BaseMiddleware):
     ) -> Any:
         telegram_user = data.get("event_from_user")
 
-        if telegram_user and not telegram_user.is_bot:
-            user_id = telegram_user.id
-            current_username = telegram_user.username
+        # Открываем единую сессию для всего запроса
+        async with session_maker() as session:
+            # Кладем сессию в data, чтобы хэндлеры могли принимать аргумент `session: AsyncSession`
+            data["session"] = session
 
-            async with session_maker() as session:
+            if telegram_user and not telegram_user.is_bot:
+                user_id = telegram_user.id
+                current_username = telegram_user.username
+
                 query = select(
                     User.telegram_id,
                     User.username,
                     User.is_active_vpn
-                    ).where(User.telegram_id == user_id)
+                ).where(User.telegram_id == user_id)
                 
                 result = await session.execute(query)
-
                 user_row = result.mappings().first()
 
                 if user_row is None:
                     stmt = insert(User).values(
                         telegram_id = user_id,
                         username = current_username,
-                        is_active_vpn=False
+                        is_active_vpn = False
                     )
                     await session.execute(stmt)
                     await session.commit()
@@ -59,6 +62,7 @@ class ShadowRegistrationMiddleware(BaseMiddleware):
                     user_data = dict(user_row)
                     user_data["username"] = current_username
 
-            data["db_user"] = user_data
+                data["db_user"] = user_data
 
-        return await handler(event, data)
+            # Передаем обработку хэндлеру внутри контекста активной сессии
+            return await handler(event, data)

@@ -45,7 +45,7 @@ async def process_vpn_delivery(
     days_to_add = relativedelta(days=order.days)
     
     if order.vpn_type == "vless":
-        if not user.is_active_vpn or not user.expires_at_vless or user.expires_at_vless < now:
+        if not user.is_active_vpn or not user.expires_at_vless or user.expires_at_vless < datetime.now(timezone.utc):
             user.expires_at_vless = now + days_to_add
         else:
             user.expires_at_vless += days_to_add
@@ -87,15 +87,15 @@ async def process_vpn_delivery(
             vless_subscription = vless_response['response']['subscriptionUrl']
 
             if order.days < 30:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 30:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 90:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 180:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 365:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
 
             await bot.send_message(
                 chat_id=user.telegram_id,
@@ -159,15 +159,15 @@ async def process_vpn_delivery(
             )
 
             if order.days < 30:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
             elif order.days == 30:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 90:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 180:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 365:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b>. 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\nWG конфиг:"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
 
             await bot.send_document(
                 chat_id=user.telegram_id,

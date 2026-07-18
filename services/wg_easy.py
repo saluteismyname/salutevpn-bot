@@ -84,7 +84,7 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
             time_calculated = expires_at_pre + days_to_add
             await client.put(
                 f"/api/wireguard/client/{pointed_user['id']}/name",
-                json={"name": f"{time_calculated.strftime("%d.%m.%Y")}_{telegram_id}"}
+                json={"name": f"{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
             )
 
 async def get_user_wg_easy(wg_id: str):
