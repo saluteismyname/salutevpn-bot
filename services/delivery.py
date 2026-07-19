@@ -13,7 +13,7 @@ from services.remnawave import create_user_remnawave, edit_user_remnawave, get_u
 from services.wg_easy import create_user_wg_easy, edit_user_wg_easy, get_user_wg_easy
 from aiohttp import web
 from aiogram.types import BufferedInputFile
-
+import httpx
 from services.wg_easy import create_user_wg_easy
 
 logger = logging.getLogger(__name__)
@@ -65,14 +65,20 @@ async def process_vpn_delivery(
         if not user.remnawave_uuid:
             try:
                 response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id)
-                user.remnawave_uuid = response["response"]["uuid"]
+                
+                uuid_value = response.get("response", {}).get("uuid")
+
+                if uuid_value:
+                    user.remnawave_uuid = response["response"]["uuid"]
                 try:
                     await session.commit()
                 except Exception as e:
                     logger.error(f"Ошибка добавления uuid в базу данных")
+            except httpx.HTTPStatusError as e:
+                # Выведет точный текст ошибки от сервера Remnawave
+                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
             except Exception as e:
-                logger.error(f"Ошибка создания пользователя в Remnawave: {e}")
-                return False
+                logger.exception(f"Общая ошибка:")
         else:
             try:
                 await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=user.expires_at_vless)
@@ -103,9 +109,13 @@ async def process_vpn_delivery(
             )
 
             return True
+        except httpx.HTTPStatusError as e:
+            # Выведет точный текст ошибки от сервера Remnawave
+            logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
         except Exception as e:
-            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
-            return True
+            # Метод .exception запишет в логи не просто имя ошибки, 
+            # а конкретный файл и номер строки, где она упала.
+            logger.exception("Произошел сбой при обработке запроса к Remnawave")
     else:
         if not user.wg_id: # not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
             expires_at_fix = None

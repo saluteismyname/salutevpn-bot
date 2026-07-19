@@ -83,7 +83,7 @@ def main():
    
     webhook_handler.register(app, path="/webhook/telegram")
     
-    setup_application(app, dp, bot=bot)
+    setup_application(app, dp, bot=bot, allowed_updates=["message", "callback_query"])
   
     app.router.add_post("/webhook/yookassa", yookassa_webhook_handler)
     print("Запуск сервера на порту 8080...")
@@ -92,7 +92,7 @@ def main():
 async def on_startup(bot: Bot):
     base_webhook_url = config.base_webhook_url
 
-    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook()
 
     await bot.set_webhook(
         f"{base_webhook_url}/webhook/telegram"
@@ -124,7 +124,7 @@ async def start(message: Message, command: CommandObject, session: AsyncSession)
     user_id = message.from_user.id
     referrer_id = None
 
-    await referral_system_registration(user_id, command, session, message)
+    await referral_system_registration(user_id, message, command, session)
 
     await message.answer(html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
             "🛍️ После приобретения товара Вы получите: \n\n"

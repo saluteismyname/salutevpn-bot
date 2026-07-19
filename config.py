@@ -13,10 +13,13 @@ class Settings(BaseSettings):
     bot_token: SecretStr
 
     remnawave_token: SecretStr
+    remnawave_internal_squad: str
 
     wg_easy_password: SecretStr
 
     wg_easy_url: str
+    remnawave_url: str
+
 
     # Начиная со второй версии pydantic, настройки класса настроек задаются
     # через model_config

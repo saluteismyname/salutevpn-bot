@@ -11,6 +11,8 @@ from services.delivery import process_vpn_delivery
 
 async def referral_system_registration(user_id: int, message: Message, command: CommandObject, session: AsyncSession):
     # 1. Проверяем реферальный аргумент
+    referrer_id = None
+
     if command.args:
         try:
             # ИСПРАВЛЕНО: Декодируем строку из Base64 обратно в обычный текст
