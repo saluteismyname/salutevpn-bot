@@ -24,6 +24,13 @@ class User(Base):
     referrer_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.telegram_id"))
     bonus_balance: Mapped[float] = mapped_column(default=0)
 
+    is_trial_available: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=True, 
+        server_default="true", 
+        nullable=False
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now()) 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 

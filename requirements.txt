@@ -9,6 +9,7 @@ certifi
 colorama
 python-dateutil
 frozenlist
+greenlet
 httpx
 idna
 iniconfig
