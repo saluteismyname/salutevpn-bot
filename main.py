@@ -238,6 +238,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 
     await referral_system_payment(telegram_id, price, callback, days, vpn_type)
 
+@dp.callback_query(F.data == "buy_7_days_vless_friend")
+async def callback_buy_7_days(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
+
+    await callback.message.edit_text(
+        f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
+        reply_markup=kb
+    )
+
 @dp.callback_query(F.data == "buy_30_days_vless")
 async def callback_buy_30_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id

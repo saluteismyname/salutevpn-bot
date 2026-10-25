@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import BigInteger, ForeignKey, Integer, String, Boolean, Column, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+from database.engine import Base
 
 class Base(DeclarativeBase):
     pass
@@ -64,3 +65,30 @@ class Order(Base):
     user: Mapped[User] = relationship(back_populates="orders")
 
     bonuses_spent: Mapped[int] = mapped_column(Integer, default=0)
+
+class PurchasedKeys(Base):
+    __tablename__ = "purchased_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # Ссылка на пользователя-покупателя
+    buyer_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+
+    # Тип VPN: 'vless' или 'wireguard'
+    vpn_type: Mapped[str] = mapped_column(String(32))
+
+    # Идентификаторы для разных панелей
+    remnawave_uuid: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+    wg_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(64), default="Подарочный ключ"
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

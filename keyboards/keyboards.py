@@ -96,11 +96,11 @@ def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
     twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=one_week, callback_data="buy_7_days_vless")
-    kb.button(text=one_month, callback_data="buy_30_days_vless")
-    kb.button(text=three_months, callback_data="buy_90_days_vless")
-    kb.button(text=six_months, callback_data="buy_180_days_vless")
-    kb.button(text=twelve_months, callback_data="buy_365_days_vless")
+    kb.button(text=one_week, callback_data="buy_7_days_vless_friend")
+    kb.button(text=one_month, callback_data="buy_30_days_vless_friend")
+    kb.button(text=three_months, callback_data="buy_90_days_vless_friend")
+    kb.button(text=six_months, callback_data="buy_180_days_vless_friend")
+    kb.button(text=twelve_months, callback_data="buy_365_days_vless_friend")
     kb.button(text="🔙 Назад", callback_data="buy_type_vless")
     kb.adjust(1)
     
@@ -115,11 +115,11 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=one_week, callback_data="buy_7_days_wireguard")
-    kb.button(text=one_month, callback_data="buy_30_days_wireguard")
-    kb.button(text=three_months, callback_data="buy_90_days_wireguard")
-    kb.button(text=six_months, callback_data="buy_180_days_wireguard")
-    kb.button(text=twelve_months, callback_data="buy_365_days_wireguard")
+    kb.button(text=one_week, callback_data="buy_7_days_wireguard_friend")
+    kb.button(text=one_month, callback_data="buy_30_days_wireguard_friend")
+    kb.button(text=three_months, callback_data="buy_90_days_wireguard_friend")
+    kb.button(text=six_months, callback_data="buy_180_days_wireguard_friend")
+    kb.button(text=twelve_months, callback_data="buy_365_days_wireguard_friend")
     kb.button(text="🔙 Назад", callback_data="buy_type_wireguard")
     kb.adjust(1)
     
@@ -143,9 +143,10 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
     if bonus_balance >= base_price:
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
         kb.button(
-            text=f"🎁 Оплатить полностью бонусами ({base_price} руб.)", 
+            text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_vless"
         )
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data="buy_7_days_wireguard_friend")
     else:
         # Сценарий Б: Бонусов не хватает, делаем частичную скидку (или бонусов 0)
         bonuses_to_spend = int(bonus_balance) # сколько бонусов спишем (все доступные)
@@ -166,9 +167,9 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
         payment_url = payment['confirmation']['confirmation_url']
         
         if bonuses_to_spend > 0:
-            btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount} руб."
+            btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
         else:
-            btn_text = f"💵 Оплатить ({final_amount} руб.)"
+            btn_text = f"💵 Оплатить ({final_amount}₽.)"
             
         kb.button(text=btn_text, url=payment_url)
 
@@ -195,7 +196,7 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
     if bonus_balance >= base_price:
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
         kb.button(
-            text=f"🎁 Оплатить полностью бонусами ({base_price} руб.)", 
+            text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_wireguard"
         )
     else:
@@ -218,9 +219,9 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
         payment_url = payment['confirmation']['confirmation_url']
         
         if bonuses_to_spend > 0:
-            btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount} руб."
+            btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
         else:
-            btn_text = f"💵 Оплатить ({final_amount} руб.)"
+            btn_text = f"💵 Оплатить ({final_amount} ₽.)"
             
         kb.button(text=btn_text, url=payment_url)
 

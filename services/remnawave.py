@@ -14,7 +14,7 @@ remnawave_internal_squad = config.remnawave_internal_squad
 # Обязательно пишем str(), так как API ожидает в json от нас str, а randint возвращает int
 
 async def create_user_remnawave(expires_at: datetime, telegram_id: int):
-    username = (f"{str(randint(123456789, 987654321))}_{telegram_id}")
+    username = (f"user_{telegram_id}")
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(f"{remnawave_url}/api/users",
