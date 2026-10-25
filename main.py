@@ -5,7 +5,7 @@ import ipaddress
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
 import aiohttp
-from keyboards.keyboards import get_payment_kb_wireguard, get_payment_kb_vless
+from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_payment_kb_wireguard, get_payment_kb_vless
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -202,21 +202,21 @@ async def callback_period_message(callback: CallbackQuery):
         reply_markup=get_buy_period_kb_wireguard()
     )
 
-# @dp.callback_query(F.data == "buy_for_friend_vless")
-# async def callback_period_message(callback: CallbackQuery):
-#     await callback.message.edit_text(
-#         "Выберите срок подписки для друга: " \
-#         "ℹ️ Если Вы хотите продлить подписку друга, нажмите \"Мои подписки\"",
-#         reply_markup=get_buy_for_friend_kb_vless
-#     )
+@dp.callback_query(F.data == "buy_for_friend_vless")
+async def callback_period_message(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "Выберите срок подписки для друга: \n" \
+        "ℹ️ Если Вы хотите продлить имеющуюся подписку друга, нажмите \"Мои подписки\"",
+        reply_markup=get_buy_for_friend_kb_vless()
+    )
 
-# @dp.callback_query(F.data == "buy_for_friend_wireguard")
-# async def callback_period_message(callback: CallbackQuery):
-#     await callback.message.edit_text(
-#         "Выберите срок подписки для друга: " \
-#         "ℹ️ Если Вы хотите продлить подписку друга, нажмите \"Мои подписки\"",
-#         reply_markup=
-#     )
+@dp.callback_query(F.data == "buy_for_friend_wireguard")
+async def callback_period_message(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "Выберите срок подписки для друга: \n" \
+        "ℹ️ Если Вы хотите продлить имеющуюся подписку друга, нажмите \"Мои подписки\"",
+        reply_markup=get_buy_for_friend_kb_wireguard()
+    )
 
 @dp.callback_query(F.data == "buy_7_days_vless")
 async def callback_buy_7_days(callback: CallbackQuery):

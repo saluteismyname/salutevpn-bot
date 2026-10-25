@@ -87,6 +87,44 @@ def get_wireguard_instruction_kb() -> InlineKeyboardMarkup:
 
     return kb.as_markup()
 
+def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
+
+    one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
+    one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
+    three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
+    six_months = f"6 месяцев - {prices.SUBSCRIPTION_PRICES['180_days']}₽"
+    twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text=one_week, callback_data="buy_7_days_vless")
+    kb.button(text=one_month, callback_data="buy_30_days_vless")
+    kb.button(text=three_months, callback_data="buy_90_days_vless")
+    kb.button(text=six_months, callback_data="buy_180_days_vless")
+    kb.button(text=twelve_months, callback_data="buy_365_days_vless")
+    kb.button(text="🔙 Назад", callback_data="buy_type_vless")
+    kb.adjust(1)
+    
+    return kb.as_markup()
+
+def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
+
+    one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
+    one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
+    three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
+    six_months = f"6 месяцев - {prices.SUBSCRIPTION_PRICES['180_days']}₽"
+    twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text=one_week, callback_data="buy_7_days_wireguard")
+    kb.button(text=one_month, callback_data="buy_30_days_wireguard")
+    kb.button(text=three_months, callback_data="buy_90_days_wireguard")
+    kb.button(text=six_months, callback_data="buy_180_days_wireguard")
+    kb.button(text=twelve_months, callback_data="buy_365_days_wireguard")
+    kb.button(text="🔙 Назад", callback_data="buy_type_wireguard")
+    kb.adjust(1)
+    
+    return kb.as_markup()
+
 async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMarkup:
     
     base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
