@@ -5,7 +5,7 @@ import ipaddress
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
 import aiohttp
-from keyboards.keyboards import get_payment_kb_wireguard
+from keyboards.keyboards import get_payment_kb_wireguard, get_payment_kb_vless
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -13,7 +13,7 @@ import json
 import base64
 from random import random
 from aiohttp import web
-from keyboards import get_start_kb, get_type_buy_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard, get_payment_180_kb_vless, get_payment_30_kb_vless, get_payment_365_kb_vless, get_payment_7_kb_vless, get_payment_90_kb_vless
+from keyboards import get_start_kb, get_type_buy_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard
 from config import config
 from aiogram import Bot, Dispatcher
 from aiogram import F
@@ -157,14 +157,14 @@ async def start(callback: CallbackQuery):
 @dp.message(F.text == "💵 Купить")
 async def period_message(message: Message):
     await message.answer(
-        "Выберите вид продукта покупки: ",
+        "Выберите протокол для покупки: ",
         reply_markup=get_type_buy_kb()
         )
         
 @dp.message(F.text == "📜 Инструкция")
 async def instruction_message(message: Message):
     await message.answer(
-        "Выберите вид продукта инструкции: ",
+        "Выберите протокол для инструкции: ",
         reply_markup=get_instruction_kb()
     )
 
@@ -177,35 +177,52 @@ async def instruction_message(message: Message):
 @dp.callback_query(F.data == "buy_type_vless")
 async def callback_buy_type_vless(callback: CallbackQuery):
     await callback.message.edit_text(
-        "Выберите вид продукта покупки: ",
+        "Выберите протокол для покупки: ",
         reply_markup=get_type_buy_kb()
     )
     
 @dp.callback_query(F.data == "buy_type_wireguard")
 async def callback_buy_type_vless(callback: CallbackQuery):
     await callback.message.edit_text(
-        "Выберите вид продукта покупки: ",
+        "Выберите протокол для покупки: ",
         reply_markup=get_type_buy_kb()
     )
 
 @dp.callback_query(F.data == "buy_period_vless")
 async def callback_period_message(callback: CallbackQuery):
     await callback.message.edit_text(
-        "Выберите срок подписки: (если Вам нужна отдельная подписка, например, для своих родственников - обратитесь в поддержку)",
+        "Выберите срок подписки:",
         reply_markup=get_buy_period_kb_vless()
     )
         
 @dp.callback_query(F.data == "buy_period_wireguard")
 async def callback_period_message(callback: CallbackQuery):
     await callback.message.edit_text(
-        "Выберите срок подписки: (если Вам нужен отдельный конфиг, например, для своих родственников - обратитесь в поддержку)",
+        "Выберите срок подписки:",
         reply_markup=get_buy_period_kb_wireguard()
     )
+
+# @dp.callback_query(F.data == "buy_for_friend_vless")
+# async def callback_period_message(callback: CallbackQuery):
+#     await callback.message.edit_text(
+#         "Выберите срок подписки для друга: " \
+#         "ℹ️ Если Вы хотите продлить подписку друга, нажмите \"Мои подписки\"",
+#         reply_markup=get_buy_for_friend_kb_vless
+#     )
+
+# @dp.callback_query(F.data == "buy_for_friend_wireguard")
+# async def callback_period_message(callback: CallbackQuery):
+#     await callback.message.edit_text(
+#         "Выберите срок подписки для друга: " \
+#         "ℹ️ Если Вы хотите продлить подписку друга, нажмите \"Мои подписки\"",
+#         reply_markup=
+#     )
 
 @dp.callback_query(F.data == "buy_7_days_vless")
 async def callback_buy_7_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_7_kb_vless(telegram_id=telegram_id)
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
@@ -224,7 +241,8 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 @dp.callback_query(F.data == "buy_30_days_vless")
 async def callback_buy_30_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_30_kb_vless(telegram_id=telegram_id)
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['30_days']}₽",
@@ -243,7 +261,8 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 @dp.callback_query(F.data == "buy_90_days_vless")
 async def callback_buy_90_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_90_kb_vless(telegram_id=telegram_id)
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['90_days']}₽",
@@ -262,7 +281,8 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 @dp.callback_query(F.data == "buy_180_days_vless")
 async def callback_buy_180_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_180_kb_vless(telegram_id=telegram_id)
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['180_days']}₽",
@@ -281,7 +301,8 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 @dp.callback_query(F.data == "buy_365_days_vless")
 async def callback_buy_365_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    kb = await get_payment_365_kb_vless(telegram_id=telegram_id)
+    days = int(callback.data.split("_")[1])
+    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['365_days']}₽",

@@ -21,11 +21,13 @@ class Settings(BaseSettings):
     remnawave_url: str
 
 
-    # Начиная со второй версии pydantic, настройки класса настроек задаются
-    # через model_config
-    # В данном случае будет использоваться файла .env, который будет прочитан
-    # с кодировкой UTF-8
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    db_user: str
+    db_password: str
+    db_name: str
+    db_host: str
+    db_port: str
+
+    model_config = SettingsConfigDict(env_file=".env")
 
     base_webhook_url: str
 
