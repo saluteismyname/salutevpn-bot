@@ -6,9 +6,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from database.engine import Base
 
-class Base(DeclarativeBase):
-    pass
-
 class User(Base):
     __tablename__ = "users"
     
