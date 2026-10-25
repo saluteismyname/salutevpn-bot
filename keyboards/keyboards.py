@@ -142,11 +142,11 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
     # Сценарий А: Бонусов хватает на полную оплату
     if bonus_balance >= base_price:
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_vless")
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_vless"
         )
-        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data="buy_7_days_wireguard_friend")
     else:
         # Сценарий Б: Бонусов не хватает, делаем частичную скидку (или бонусов 0)
         bonuses_to_spend = int(bonus_balance) # сколько бонусов спишем (все доступные)
