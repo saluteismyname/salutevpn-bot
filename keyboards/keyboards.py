@@ -156,7 +156,7 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
         
         payment_url = payment['confirmation']['confirmation_url']
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
-        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_vless")
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_vless", url="payment_url")
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_vless"
@@ -223,7 +223,7 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
         
         payment_url = payment['confirmation']['confirmation_url']
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
-        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_wireguard")
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_wireguard", url="payment_url")
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_wireguard"
