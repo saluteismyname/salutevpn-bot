@@ -198,14 +198,17 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
 
         if bonuses_to_spend > 0:
             btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
+            kb.button(text=btn_text, url=payment_url)
+            kb.button(
+                text=f"💵 Оплатить",
+                url=payment_without_bonuses_url
+            )
+        else:
+            kb.button(
+                text=f"💵 Оплатить",
+                url=payment_without_bonuses_url
+            )
         
-        kb.button(
-            text=f"💳 Оплатить картой полную стоимость",
-            url=payment_without_bonuses_url
-        )
-        
-        kb.button(text=btn_text, url=payment_url)
-
     kb.button(text="🔙 Назад", callback_data="buy_period_vless")
     kb.adjust(1)
 
@@ -234,7 +237,7 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
                 session=session,
                 telegram_id=telegram_id,
                 days=days,
-                vpn_type="vless",
+                vpn_type="wireguard",
                 amount_value=base_price,
                 bonuses_spent=0,
             )
@@ -251,6 +254,7 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_wireguard"
         )
+
     else:
         # Сценарий Б: Бонусов не хватает, делаем частичную скидку (или бонусов 0)
         bonuses_to_spend = int(bonus_balance) # сколько бонусов спишем (все доступные)
@@ -272,7 +276,7 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
                 session=session,
                 telegram_id=telegram_id,
                 days=days,
-                vpn_type="vless",
+                vpn_type="wireguard",
                 amount_value=base_price,
                 bonuses_spent=0,
             )
@@ -282,13 +286,16 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
         
         if bonuses_to_spend > 0:
             btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-
-        kb.button(
-            text=f"💳 Оплатить картой полную стоимость",
-            url=payment_without_bonuses_url
-        )
-            
-        kb.button(text=btn_text, url=payment_url)
+            kb.button(text=btn_text, url=payment_url)
+            kb.button(
+                text=f"💵 Оплатить",
+                url=payment_without_bonuses_url
+            )
+        else:
+            kb.button(
+                text=f"💵 Оплатить",
+                url=payment_without_bonuses_url
+            )  
 
     kb.button(text="🔙 Назад", callback_data="buy_period_wireguard")
     kb.adjust(1)
