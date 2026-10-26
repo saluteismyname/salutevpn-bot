@@ -157,7 +157,7 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
         payment_url = payment['confirmation']['confirmation_url']
         
         kb.button(
-            text=f"💳 Оплатить картой",
+            text=f"💳 Оплатить",
             url=payment_url
         )
 
@@ -197,15 +197,15 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
         payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']
 
         if bonuses_to_spend > 0:
-            btn_text = f"💳💵 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-            kb.button(text=btn_text, url=payment_url)
             kb.button(
                 text=f"💳 Оплатить",
                 url=payment_without_bonuses_url
             )
+            btn_text = f"💵 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
+            kb.button(text=btn_text, url=payment_url)
         else:
             kb.button(
-                text=f"💳 Оплатить полностью картой",
+                text=f"💳 Оплатить",
                 url=payment_without_bonuses_url
             )
         
@@ -288,12 +288,12 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
             btn_text = f"💵 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
             kb.button(text=btn_text, url=payment_url)
             kb.button(
-                text=f"💳💵 Оплатить",
+                text=f"💳 Оплатить полностью картой",
                 url=payment_without_bonuses_url
             )
         else:
             kb.button(
-                text=f"💳 Оплатить полностью картой",
+                text=f"💳 Оплатить",
                 url=payment_without_bonuses_url
             )  
 
