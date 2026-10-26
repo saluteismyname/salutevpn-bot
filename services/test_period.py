@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+from database.models import User
+
 async def registration_new_user(session, user_id, username):
     # Проверяем, есть ли уже такой пользователь в базе
     user = await session.get(User, user_id)
@@ -14,8 +16,10 @@ async def registration_new_user(session, user_id, username):
             username=username,
             is_active_vpn=True,
             expires_at_vless=trial_expires_at,  # Сохраняем дату окончания триала
-            # ... остальные поля ...
+            expires_at_wireguard=trial_expires_at,
+            is_trial_available=False
         )
+        
         session.add(user)
         await session.commit()
         

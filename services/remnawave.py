@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import httpx
 from random import randint
 import datetime
+import random
 # Подгружаем переменные из .env
 load_dotenv()
 
@@ -14,7 +15,13 @@ remnawave_internal_squad = config.remnawave_internal_squad
 # Обязательно пишем str(), так как API ожидает в json от нас str, а randint возвращает int
 
 async def create_user_remnawave(expires_at: datetime, telegram_id: int):
-    username = (f"user_{telegram_id}")
+    
+    if config.TESTING:  # или ваше условие для проверки TESTING == True
+        rand_num = random.randint(123456789, 987654321)
+        username = f"test_{rand_num}_{telegram_id}"
+    else:
+        username = f"user_{telegram_id}"
+    
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(f"{remnawave_url}/api/users",

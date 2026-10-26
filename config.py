@@ -8,8 +8,6 @@ from yookassa import Configuration
 load_dotenv()
 
 class Settings(BaseSettings):
-    # Желательно вместо str использовать SecretStr 
-    # для конфиденциальных данных, например, токена бота
     bot_token: SecretStr
     remnawave_token: SecretStr
     remnawave_url: str
@@ -21,12 +19,13 @@ class Settings(BaseSettings):
     yookassa_secret_key: SecretStr
     yookassa_networks: str | list[ipaddress.IPv4Network | ipaddress.IPv6Network]
 
-    # Добавьте недостающие поля для базы данных:
     db_user: str
     db_password: str
     db_name: str
     db_host: str
     db_port: str
+
+    testing: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
