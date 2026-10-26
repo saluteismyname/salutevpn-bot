@@ -143,16 +143,16 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
     if bonus_balance >= base_price:
 
         async with session_maker() as session:
-                    # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
-                    # В metadata передаем id заказа, чтобы связать его при получении вебхука
-                    payment = await create_payment(
-                        session=session,
-                        telegram_id=telegram_id,
-                        days=days,
-                        vpn_type="vless",
-                        amount_value=base_price,
-                        bonuses_spent=0,
-                    )
+            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
+            # В metadata передаем id заказа, чтобы связать его при получении вебхука
+            payment = await create_payment(
+                session=session,
+                telegram_id=telegram_id,
+                days=days,
+                vpn_type="vless",
+                amount_value=base_price,
+                bonuses_spent=0,
+            )
 
         payment_url = payment['confirmation']['confirmation_url']
         
@@ -198,8 +198,6 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
 
         if bonuses_to_spend > 0:
             btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-        else:
-            btn_text = f"💵 Оплатить ({final_amount}₽.)"
         
         kb.button(
             text=f"💳 Оплатить картой полную стоимость",
@@ -284,8 +282,6 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
         
         if bonuses_to_spend > 0:
             btn_text = f"💳 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-        else:
-            btn_text = f"💵 Оплатить ({final_amount} ₽.)"
 
         kb.button(
             text=f"💳 Оплатить картой полную стоимость",
