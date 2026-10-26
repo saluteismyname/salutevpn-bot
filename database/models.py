@@ -85,7 +85,7 @@ class PurchasedKey(Base):
     )
 
     name: Mapped[str] = mapped_column(
-        String(64), default="Подарочная подписка №1"
+        String(64), default="Подарочная подписка"
     )
     
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)

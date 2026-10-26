@@ -5,7 +5,7 @@ import ipaddress
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
 import aiohttp
-from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_payment_kb_wireguard, get_payment_kb_vless
+from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_payment_kb_wireguard, get_payment_kb_vless, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -159,9 +159,22 @@ async def instruction_message(message: Message):
     )
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
-async def activate_trial(message: Message, bot):
+async def trial_types(message: Message):
     await message.answer(
-        reply_markup=get_trial_kb()
+        "Выберите протокол для активации пробного периода: ",
+        reply_markup=get_trial_type_kb()
+    )
+
+@dp.callback_query(F.data == "activate_trial_vless")
+async def activate_trial_vless(callback: CallbackQuery):
+    await callback.message.edit_text(
+            "Test Vless",
+    )
+
+@dp.callback_query(F.data == "activate_trial_wireguard")
+async def activate_trial_wireguard(callback: CallbackQuery):
+    await callback.message.edit_text(
+            "Test AmneziaWG",
     )
 
 @dp.message(F.text == "🎁 Реферальная система")

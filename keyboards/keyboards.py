@@ -303,14 +303,18 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
 
     return kb.as_markup()
 
-async def get_trial_kb():
+async def get_trial_type_kb():
+    
     kb=InlineKeyboardBuilder()
     
     kb.button(
-        "Активировать Vless"
+        text="🎁 Активировать пробный период Vless",
+        callback_data="activate_trial_vless"
     )
+
     kb.button(
-        "Активировать AmneziaWG"
+        text="🎁 Активировать пробный период AmneziaWG",
+        callback_data="activate_trial_wg"
     )
 
     return kb.as_markup()
