@@ -126,6 +126,22 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     
     return kb.as_markup()
 
+def get_trial_type_kb():
+    
+    kb=InlineKeyboardBuilder()
+    
+    kb.button(
+        text="🎁 Активировать пробный период Vless",
+        callback_data="activate_trial_vless"
+    )
+
+    kb.button(
+        text="🎁 Активировать пробный период AmneziaWG",
+        callback_data="activate_trial_wg"
+    )
+
+    return kb.as_markup()
+
 async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMarkup:
     
     base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
@@ -300,21 +316,5 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
 
     kb.button(text="🔙 Назад", callback_data="buy_period_wireguard")
     kb.adjust(1)
-
-    return kb.as_markup()
-
-async def get_trial_type_kb():
-    
-    kb=InlineKeyboardBuilder()
-    
-    kb.button(
-        text="🎁 Активировать пробный период Vless",
-        callback_data="activate_trial_vless"
-    )
-
-    kb.button(
-        text="🎁 Активировать пробный период AmneziaWG",
-        callback_data="activate_trial_wg"
-    )
 
     return kb.as_markup()
