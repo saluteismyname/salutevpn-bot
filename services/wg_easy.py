@@ -21,12 +21,8 @@ password = config.wg_easy_password.get_secret_value()
 url = config.wg_easy_url
 
 async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
-    if config.testing:
-        name = f"test_{expires_at}_{telegram_id}"
-    else:
-        name = f"{expires_at}_{telegram_id}"
     
-    async with httpx.AsyncClient(base_url=url) as client:
+    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
         # Авторизация
         login_response = await client.post(
             "/api/session",
@@ -40,6 +36,11 @@ async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
         expires_at = datetime.now(timezone.utc) + days_to_add
 
         expires_at = expires_at.strftime("%d.%m.%Y")
+
+        if config.testing:
+            name = f"test_{expires_at}_{telegram_id}"
+        else:
+            name = f"{expires_at}_{telegram_id}"
 
         await client.post(
             "/api/wireguard/client",
@@ -60,7 +61,7 @@ async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
 
 async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_add: datetime):
 
-    async with httpx.AsyncClient(base_url=url) as client:
+    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
         # Авторизация
         login_response = await client.post(
             "/api/session",
@@ -77,23 +78,39 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
             
         pointed_user = None
         
-        name = f"{expires_at_fix}_{telegram_id}"
+        # name = f"{expires_at_fix}_{telegram_id}"
+        if config.testing:
+            name = f"test_{expires_at_fix}_{telegram_id}"
+        else:
+            name = f"{expires_at_fix}_{telegram_id}"
+
+        print(f"🔍 Ищем клиента с именем: '{name}'")
 
         for pointed_client in clients:
-            if pointed_client['name'] == name:
+            print(
+               f"В базе найден клиент: '{pointed_client.get('name')}'"
+            )
+            if pointed_client.get("name") == name:
                 pointed_user = pointed_client
-
-        if pointed_user and expires_at_fix:
+                break
+        if pointed_user and expires_at_fix and config.testing == "False":
             expires_at_pre = datetime.strptime(expires_at_fix, "%d.%m.%Y")
             time_calculated = expires_at_pre + days_to_add
             await client.put(
                 f"/api/wireguard/client/{pointed_user['id']}/name",
                 json={"name": f"{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
             )
+        elif pointed_user and expires_at_fix and config.testing == "True":
+            expires_at_pre = datetime.strptime(expires_at_fix, "%d.%m.%Y")
+            time_calculated = expires_at_pre + days_to_add
+            await client.put(
+                f"/api/wireguard/client/{pointed_user['id']}/name",
+                json={"name": f"test_{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
+            )
 
 async def get_user_wg_easy(wg_id: str):
     
-    async with httpx.AsyncClient(base_url=url) as client:
+    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
         # Авторизация
         login_response = await client.post(
             "/api/session",
