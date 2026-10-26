@@ -141,11 +141,22 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
 
     # Сценарий А: Бонусов хватает на полную оплату
     if bonus_balance >= base_price:
-        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
-        kb.button(
-            text=f"Оплатить 💳 картой"
-        )
 
+        async with session_maker() as session:
+            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
+            # В metadata передаем id заказа, чтобы связать его при получении вебхука
+            payment = await create_payment(
+                session=session,
+                telegram_id=telegram_id,
+                days=days,
+                vpn_type="vless",
+                amount_value=base_price,
+                bonuses_spent=0,
+                )
+        
+        payment_url = payment['confirmation']['confirmation_url']
+        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_vless")
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_vless"
@@ -198,6 +209,21 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
     # Сценарий А: Бонусов хватает на полную оплату
     if bonus_balance >= base_price:
         # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
+        async with session_maker() as session:
+            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
+            # В metadata передаем id заказа, чтобы связать его при получении вебхука
+            payment = await create_payment(
+                session=session,
+                telegram_id=telegram_id,
+                days=days,
+                vpn_type="wireguard",
+                amount_value=base_price,
+                bonuses_spent=0,
+                )
+        
+        payment_url = payment['confirmation']['confirmation_url']
+        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
+        kb.button(text=f"Оплатите счёт на сумму {base_price}₽", callback_data=f"buy_{days}_days_wireguard")
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
             callback_data=f"pay_full_bonuses_{days}_days_wireguard"
