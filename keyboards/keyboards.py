@@ -155,12 +155,13 @@ async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMar
                     )
 
         payment_url = payment['confirmation']['confirmation_url']
-                    
-        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
+        
         kb.button(
-            text=f"Оплатить 💳 картой",
+            text=f"💳 Оплатить картой",
             url=payment_url
         )
+
+        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
 
         kb.button(
             text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
