@@ -63,14 +63,14 @@ class Order(Base):
 
     bonuses_spent: Mapped[int] = mapped_column(Integer, default=0)
 
-class PurchasedKeys(Base):
+class PurchasedKey(Base):
     __tablename__ = "purchased_keys"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     # Ссылка на пользователя-покупателя
     buyer_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
     )
 
     # Тип VPN: 'vless' или 'wireguard'
@@ -85,7 +85,8 @@ class PurchasedKeys(Base):
     )
 
     name: Mapped[str] = mapped_column(
-        String(64), default="Подарочный ключ"
+        String(64), default="Подарочная подписка №1"
     )
+    
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

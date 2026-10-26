@@ -10,9 +10,10 @@ def get_start_kb() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
     kb.button(text="💵 Купить")
     kb.button(text="📜 Инструкция")
+    kb.button(text="🎁 Активировать пробную подписку")
     kb.button(text="🎁 Реферальная система")
     kb.button(text="💬 Помощь")
-    kb.adjust(2, 1, 1)
+    kb.adjust(2, 1, 1, 1)
 
     return kb.as_markup(resize_keyboard=True)
 
@@ -299,5 +300,17 @@ async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboar
 
     kb.button(text="🔙 Назад", callback_data="buy_period_wireguard")
     kb.adjust(1)
+
+    return kb.as_markup()
+
+async def get_trial_kb():
+    kb=InlineKeyboardBuilder()
+    
+    kb.button(
+        "Активировать Vless"
+    )
+    kb.button(
+        "Активировать AmneziaWG"
+    )
 
     return kb.as_markup()

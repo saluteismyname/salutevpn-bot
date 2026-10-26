@@ -109,16 +109,6 @@ async def on_startup(bot: Bot):
             print(f"Попытка {attempt+1}: База еще не готова, ждем... ({e})")
             await asyncio.sleep(2)
 
-@dp.message(F.text == "🎁 Реферальная система")
-async def show_referral_link(message: Message, bot):
-    # Создает ссылку вида t.me/bot?start=123456789
-    ref_link = await create_start_link(bot, str(message.from_user.id), encode=True)
-    
-    await message.answer(
-        f"🔗 Ваша реферальная ссылка:\n{ref_link}\n\n"
-        f"Делитесь ей с друзьями и получайте бонусные рубли, с помощью которых Вы сможете оплатить подписку! 30% с каждой оплаты друга!"
-    )
-
 @dp.message(Command("start"))
 async def start(message: Message, command: CommandObject, session: AsyncSession):
     user_id = message.from_user.id
@@ -166,6 +156,22 @@ async def instruction_message(message: Message):
     await message.answer(
         "Выберите протокол для инструкции: ",
         reply_markup=get_instruction_kb()
+    )
+
+@dp.message(F.text == "🎁 Активировать пробную подписку")
+async def activate_trial(message: Message, bot):
+    await message.answer(
+        reply_markup=get_trial_kb()
+    )
+
+@dp.message(F.text == "🎁 Реферальная система")
+async def show_referral_link(message: Message, bot):
+    # Создает ссылку вида t.me/bot?start=123456789
+    ref_link = await create_start_link(bot, str(message.from_user.id), encode=True)
+    
+    await message.answer(
+        f"🔗 Ваша реферальная ссылка:\n{ref_link}\n\n"
+        f"Делитесь ей с друзьями и получайте бонусные рубли, с помощью которых Вы сможете оплатить подписку! 30% с каждой оплаты друга!"
     )
 
 @dp.message(F.text == "💬 Помощь")

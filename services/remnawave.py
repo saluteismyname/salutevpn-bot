@@ -12,11 +12,10 @@ load_dotenv()
 remnawave_token = config.remnawave_token.get_secret_value()
 remnawave_url = config.remnawave_url
 remnawave_internal_squad = config.remnawave_internal_squad
-# Обязательно пишем str(), так как API ожидает в json от нас str, а randint возвращает int
 
 async def create_user_remnawave(expires_at: datetime, telegram_id: int):
     
-    if config.TESTING:  # или ваше условие для проверки TESTING == True
+    if config.testing:
         rand_num = random.randint(123456789, 987654321)
         username = f"test_{rand_num}_{telegram_id}"
     else:

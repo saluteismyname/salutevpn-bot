@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import json
+import random
 
 import httpx
 import asyncio
@@ -20,6 +21,11 @@ password = config.wg_easy_password.get_secret_value()
 url = config.wg_easy_url
 
 async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
+    if config.testing:
+        name = f"test_{expires_at}_{telegram_id}"
+    else:
+        name = f"{expires_at}_{telegram_id}"
+    
     async with httpx.AsyncClient(base_url=url) as client:
         # Авторизация
         login_response = await client.post(
@@ -34,8 +40,6 @@ async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
         expires_at = datetime.now(timezone.utc) + days_to_add
 
         expires_at = expires_at.strftime("%d.%m.%Y")
-
-        name = f"{expires_at}_{telegram_id}"
 
         await client.post(
             "/api/wireguard/client",
