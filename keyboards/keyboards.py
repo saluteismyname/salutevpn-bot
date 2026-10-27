@@ -140,6 +140,8 @@ def get_trial_type_kb():
         callback_data="activate_trial_wg"
     )
 
+    kb.adjust(1)
+
     return kb.as_markup()
 
 async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMarkup:

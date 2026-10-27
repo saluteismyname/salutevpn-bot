@@ -22,7 +22,14 @@ class User(Base):
     referrer_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.telegram_id"))
     bonus_balance: Mapped[float] = mapped_column(default=0)
 
-    is_trial_available: Mapped[bool] = mapped_column(
+    is_trial_available_vless: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=True, 
+        server_default="true", 
+        nullable=False
+    )
+
+    is_trial_available_wireguard: Mapped[bool] = mapped_column(
         Boolean, 
         default=True, 
         server_default="true", 

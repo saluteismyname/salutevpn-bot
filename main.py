@@ -29,7 +29,7 @@ from yookassa.domain.notification import WebhookNotificationFactory, WebhookNoti
 from dotenv import load_dotenv
 from sqlalchemy import select, insert, update
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
 from services.yookassa_api import yookassa_webhook_handler
 from database.models import Base  # Твой импорт базового класса моделей
@@ -160,6 +160,18 @@ async def instruction_message(message: Message):
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
 async def trial_types(message: Message):
+    async with session_maker() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == message.from_user.id)
+        )
+        user = result.scalar_one_or_none()
+    
+    if not user or not user.is_trial_available:
+        await message.answer(
+            "Вы уже использовали пробную подписку."
+        )
+        return
+    
     await message.answer(
         "Выберите протокол для активации пробного периода: ",
         reply_markup=get_trial_type_kb()
