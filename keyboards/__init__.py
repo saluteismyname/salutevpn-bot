@@ -1,1 +1,1 @@
-from .keyboards import get_start_kb, get_type_buy_kb, get_buy_period_kb_vless, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_wireguard
+from .keyboards import get_start_kb, get_buy_period_kb_vless, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_wireguard

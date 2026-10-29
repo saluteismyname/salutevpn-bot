@@ -1,0 +1,145 @@
+from asyncio.log import logger
+from datetime import datetime, timedelta, timezone
+import logging
+import traceback
+from zoneinfo import ZoneInfo
+from dateutil.relativedelta import relativedelta
+from aiogram import Bot
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.models import Order, User
+from payments import prices
+from services.remnawave import create_user_remnawave, edit_user_remnawave, get_user_remnawave
+from services.wg_easy import create_user_wg_easy, edit_user_wg_easy, get_user_wg_easy
+from aiohttp import web
+from aiogram.types import BufferedInputFile
+import httpx
+from services.wg_easy import create_user_wg_easy
+
+logger = logging.getLogger(__name__)
+
+async def process_trial_vpn_delivery(
+        session: AsyncSession,
+        bot: Bot, 
+        telegram_id: str,
+        vpn_type: str
+    ) -> object:
+
+    user_query = select(User).where(User.telegram_id == telegram_id)
+    user_result = await session.execute(user_query)
+    user = user_result.scalar_one()
+    
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    days_to_add = relativedelta(days=3)
+    
+    if vpn_type == "vless":
+        if not user.is_active_vpn or not user.expires_at_vless or user.expires_at_vless < datetime.now(timezone.utc):
+            user.expires_at_vless = now + days_to_add
+        else:
+            user.expires_at_vless += days_to_add
+
+        try:
+            await session.commit()
+            logger.info(f"Подписка для пользователя {user.telegram_id} по пробной подписке и типом VPN Vless успешно обновлена!")
+        except Exception as e:
+            await session.rollback()
+            logger.exception(f"Критическая ошибка базы данных при сохранении заказа пробной подписки: {e}")
+            return False 
+
+        expires_at = user.expires_at_vless.isoformat() # API запрос принимает только iso формат
+        # Создаем пользователя в Remnawave или редактирование
+        if not user.remnawave_uuid:
+            try:
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id)
+                
+                uuid_value = response.get("response", {}).get("uuid")
+
+                if uuid_value:
+                    user.remnawave_uuid = response["response"]["uuid"]
+                try:
+                    await session.commit()
+                except Exception as e:
+                    logger.error(f"Ошибка добавления uuid в базу данных")
+            except httpx.HTTPStatusError as e:
+                # Выведет точный текст ошибки от сервера Remnawave
+                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+            except Exception as e:
+                logger.exception(f"Общая ошибка:")
+        else:
+            try:
+                await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=user.expires_at_vless)
+            except Exception as e:
+                logger.error(f"Ошибка редактирования пользователя: {e}")
+        # Отправляем сообщение пользователю
+        try:
+            moscow_time = user.expires_at_vless + timedelta(hours=3)
+            readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
+
+            vless_response = await get_user_remnawave(remnawave_uuid = user.remnawave_uuid)
+            vless_subscription = vless_response['response']['subscriptionUrl']
+
+        except httpx.HTTPStatusError as e:
+            # Выведет точный текст ошибки от сервера Remnawave
+            logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+        except Exception as e:
+            # Метод .exception запишет в логи не просто имя ошибки, 
+            # а конкретный файл и номер строки, где она упала.
+            logger.exception("Произошел сбой при обработке запроса к Remnawave")
+        
+        return {
+            "readable_date": readable_date,
+            "vless_subscription": vless_subscription
+        }
+    elif vpn_type == "wireguard":
+        if not user.wg_id: # not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
+            expires_at_fix = None
+            user.expires_at_wireguard = now + days_to_add
+            try:
+                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add=days_to_add)
+                user.wg_id = wg_user
+                try:
+                    await session.commit()
+                except Exception as e:
+                    logger.error(f"Ошибка добавления wg_id в базу данных")
+            except Exception as e:
+                logger.error(f"Ошибка создания пользователя в WG Easy: {e}")
+                error_details = traceback.format_exc()
+                print("Детали ошибки:")
+                print(error_details)
+                return False
+        
+        try:
+            await session.commit()
+            logger.info(f"Пробная подписка для пользователя {user.telegram_id} с типом VPN WireGuard успешно обновлена!")
+        except Exception as e:
+            await session.rollback()
+            logger.exception(f"Критическая ошибка базы данных при сохранении пробного периода WireGuard: {e}")
+            return False
+        
+        expires_at = user.expires_at_wireguard.strftime("%d.%m.%Y")
+            
+        # Отправляем сообщение пользователю
+        try:
+            moscow_time = user.expires_at_wireguard + timedelta(hours=3)
+            readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
+
+            config = await get_user_wg_easy(wg_id = user.wg_id)
+            config_file = BufferedInputFile(
+                file=config.encode("utf-8"), 
+                filename=f"Salute_VPN_{user.telegram_id}.conf"
+            )
+
+            msg = f"✅ <b>Активация пробного периода прошло успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> активирована на 3 дня\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
+
+            await bot.send_document(
+                chat_id=user.telegram_id,
+                caption=msg,
+                document=config_file
+            )
+
+            return {
+                "readable_date": readable_date
+            }
+        except Exception as e:
+            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
+            return False

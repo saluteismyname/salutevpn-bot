@@ -17,7 +17,7 @@ def get_start_kb() -> ReplyKeyboardMarkup:
 
     return kb.as_markup(resize_keyboard=True)
 
-def get_type_buy_kb() -> InlineKeyboardMarkup:
+def get_buy_type_kb() -> InlineKeyboardMarkup:
    
     kb = InlineKeyboardBuilder()
     kb.button(text="Vless", callback_data="buy_period_vless")
