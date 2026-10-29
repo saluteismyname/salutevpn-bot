@@ -43,7 +43,7 @@ def get_buy_period_kb_vless() -> InlineKeyboardMarkup:
     kb.button(text=six_months, callback_data="buy_180_days_vless")
     kb.button(text=twelve_months, callback_data="buy_365_days_vless")
     kb.button(text=buy_for_friend, callback_data="buy_for_friend_vless")
-    kb.button(text="🔙 Назад", callback_data="buy_type_vless")
+    kb.button(text="🔙 Назад", callback_data="buy_type")
     kb.adjust(1)
     
     return kb.as_markup()
@@ -64,7 +64,7 @@ def get_buy_period_kb_wireguard() -> InlineKeyboardMarkup:
     kb.button(text=six_months, callback_data="buy_180_days_wireguard")
     kb.button(text=twelve_months, callback_data="buy_365_days_wireguard")
     kb.button(text=buy_for_friend, callback_data="buy_for_friend_wireguard")
-    kb.button(text="🔙 Назад", callback_data="buy_type_wireguard")
+    kb.button(text="🔙 Назад", callback_data="buy_type")
     kb.adjust(1)
     
     return kb.as_markup()
@@ -105,7 +105,7 @@ def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
     kb.button(text=three_months, callback_data="buy_90_days_vless_friend")
     kb.button(text=six_months, callback_data="buy_180_days_vless_friend")
     kb.button(text=twelve_months, callback_data="buy_365_days_vless_friend")
-    kb.button(text="🔙 Назад", callback_data="buy_type_vless")
+    kb.button(text="🔙 Назад", callback_data="get_buy_type_kb")
     kb.adjust(1)
     
     return kb.as_markup()

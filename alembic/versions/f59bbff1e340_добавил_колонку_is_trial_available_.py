@@ -26,8 +26,8 @@ def upgrade():
     op.execute(
         """
         UPDATE users 
-        SET is_trial_available_vless = FALSE, 
-            is_trial_available_wireguard = FALSE 
+        SET is_trial_available_vless = TRUE, 
+            is_trial_available_wireguard = TRUE 
         WHERE is_active_vpn = TRUE;
         """
     )

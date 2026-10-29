@@ -179,6 +179,22 @@ async def trial_types(message: Message):
         reply_markup=get_trial_type_kb()
     )
 
+@dp.message(F.text == "🎁 Реферальная система")
+async def show_referral_link(message: Message, bot):
+    # Создает ссылку вида t.me/bot?start=123456789
+    ref_link = await create_start_link(bot, str(message.from_user.id), encode=True)
+    
+    await message.answer(
+        f"🔗 Ваша реферальная ссылка:\n{ref_link}\n\n"
+        f"Делитесь ей с друзьями и получайте бонусные рубли, с помощью которых Вы сможете оплатить подписку! 30% с каждой оплаты друга!"
+    )
+
+@dp.message(F.text == "💬 Помощь")
+async def instruction_message(message: Message):
+    await message.answer(
+        "<a href='https://t.me/saluteismyname'>Поддержка</a>"
+    )
+
 @dp.callback_query(F.data.startswith("activate_trial_"))
 async def activate_trial(callback: CallbackQuery):
     await callback.answer()
@@ -245,21 +261,6 @@ async def activate_trial(callback: CallbackQuery):
     
                 return
 
-@dp.message(F.text == "🎁 Реферальная система")
-async def show_referral_link(message: Message, bot):
-    # Создает ссылку вида t.me/bot?start=123456789
-    ref_link = await create_start_link(bot, str(message.from_user.id), encode=True)
-    
-    await message.answer(
-        f"🔗 Ваша реферальная ссылка:\n{ref_link}\n\n"
-        f"Делитесь ей с друзьями и получайте бонусные рубли, с помощью которых Вы сможете оплатить подписку! 30% с каждой оплаты друга!"
-    )
-
-@dp.message(F.text == "💬 Помощь")
-async def instruction_message(message: Message):
-    await message.answer(
-        "<a href='https://t.me/saluteismyname'>Поддержка</a>"
-    )
 
 @dp.callback_query(F.data == "buy_type")
 async def callback_buy_type_vless(callback: CallbackQuery):
