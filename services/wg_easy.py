@@ -84,13 +84,8 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
         else:
             name = f"{expires_at_fix}_{telegram_id}"
 
-        print(f"🔍 Ищем клиента с именем: '{name}'")
-
         for pointed_client in clients:
-            print(
-               f"В базе найден клиент: '{pointed_client.get('name')}'"
-            )
-            if pointed_client.get("name") == name:
+            if pointed_client["name"] == name:
                 pointed_user = pointed_client
                 break
         if pointed_user and expires_at_fix and config.testing == "False":

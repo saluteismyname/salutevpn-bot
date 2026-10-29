@@ -38,6 +38,8 @@ async def process_trial_vpn_delivery(
         else:
             user.expires_at_vless += days_to_add
 
+        user.is_trial_available_vless = False
+
         try:
             await session.commit()
             logger.info(f"Подписка для пользователя {user.telegram_id} по пробной подписке и типом VPN Vless успешно обновлена!")
@@ -92,12 +94,15 @@ async def process_trial_vpn_delivery(
         }
     elif vpn_type == "wireguard":
         if not user.wg_id: # not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
-            expires_at_fix = None
-            user.expires_at_wireguard = now + days_to_add
+            if not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < datetime.now(timezone.utc):
+                user.expires_at_wireguard = now + days_to_add
+            else:
+                user.expires_at_wireguard += days_to_add
+            user.is_trial_available_wireguard = False
             try:
                 wg_user = await create_user_wg_easy(user.telegram_id, days_to_add=days_to_add)
-                user.wg_id = wg_user
                 try:
+                    user.wg_id = wg_user
                     await session.commit()
                 except Exception as e:
                     logger.error(f"Ошибка добавления wg_id в базу данных")
@@ -107,6 +112,13 @@ async def process_trial_vpn_delivery(
                 print("Детали ошибки:")
                 print(error_details)
                 return False
+        else:
+            expires_at_fix = user.expires_at_wireguard.strftime("%d.%m.%Y")
+            user.expires_at_wireguard += days_to_add
+            user.is_trial_available_wireguard = False
+            
+            await edit_user_wg_easy(telegram_id=telegram_id, expires_at_fix=expires_at_fix, days_to_add=days_to_add)
+            print('111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111', telegram_id, user.expires_at_wireguard, days_to_add)
         
         try:
             await session.commit()
