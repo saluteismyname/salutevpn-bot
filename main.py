@@ -1,17 +1,10 @@
 import asyncio
-from asyncio.log import logger
-import datetime
-import ipaddress
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-import aiohttp
-from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_payment_kb_wireguard, get_payment_kb_vless, get_trial_type_kb
+from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_payment_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
-import json
-import base64
-from random import random
 from aiohttp import web
 from keyboards import get_start_kb, get_type_buy_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard
 from config import config
@@ -31,6 +24,7 @@ from sqlalchemy import select, insert, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
+from services.payment import get_payment_data
 from services.yookassa_api import yookassa_webhook_handler
 from database.models import Base  # Твой импорт базового класса моделей
 from database.engine import engine # Твой импорт асинхронного движка
@@ -166,7 +160,7 @@ async def trial_types(message: Message):
         )
         user = result.scalar_one_or_none()
     
-    if not user or not user.is_trial_available:
+    if not user or not (user.is_trial_available_vless or user.is_trial_available_wireguard):
         await message.answer(
             "Вы уже использовали пробную подписку."
         )
@@ -177,17 +171,73 @@ async def trial_types(message: Message):
         reply_markup=get_trial_type_kb()
     )
 
-@dp.callback_query(F.data == "activate_trial_vless")
-async def activate_trial_vless(callback: CallbackQuery):
-    await callback.message.edit_text(
-            "Test Vless",
-    )
+@dp.callback_query(F.data == "activate_trial_")
+async def activate_trial(callback: CallbackQuery):
 
-@dp.callback_query(F.data == "activate_trial_wireguard")
-async def activate_trial_wireguard(callback: CallbackQuery):
-    await callback.message.edit_text(
-            "Test AmneziaWG",
-    )
+    vpn_type = callback.data.split("_")[-1]
+
+    async with session_maker() as session:
+        
+        result = await session.execute(
+            select(User).where(User.telegram_id == callback.from_user.id)
+        )
+
+        user = result.scalar_one_or_none()
+
+    await callback.answer()
+
+    if not user:
+        await callback.message.answer(
+            "Вы ещё не зарегистрировались."
+        )
+
+        return
+    
+    if vpn_type == "vless":
+
+
+        if not user.is_trial_available_vless:
+                await callback.message.answer(
+                    "Вы уже использовали пробную подписку Vless"
+                )
+                
+                return
+        elif user.expires_at_vless:
+            
+            await callback.message.answer(
+                "Вы уже пользуетесь Vless."
+            )
+            
+            return
+        else:
+            
+            await callback.message.answer(
+                "Тест Vless"
+            )
+
+            return
+    elif vpn_type == "wireguard":
+    
+            if not user.is_trial_available_vless:
+                    await callback.message.answer(
+                        "Вы уже использовали пробную подписку WireGuard"
+                    )
+                    
+                    return
+            elif user.expires_at_vless:
+                
+                await callback.message.answer(
+                    "Вы уже пользуетесь WireGuard."
+                )
+                
+                return
+            else:
+                
+                await callback.message.answer(
+                    "Тест WireGuard"
+                )
+    
+                return
 
 @dp.message(F.text == "🎁 Реферальная система")
 async def show_referral_link(message: Message, bot):
@@ -253,8 +303,8 @@ async def callback_period_message(callback: CallbackQuery):
 async def callback_buy_7_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
-
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="vless")
+    kb = get_payment_kb(days=days, vpn_type="vless", payment=payment)
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
         reply_markup=kb
@@ -265,15 +315,16 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "vless"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="vless")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_7_days_vless_friend")
 async def callback_buy_7_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
+    kb = get_payment_kb(telegram_id=telegram_id, days=days, vpn_type="vless")
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['7_days']}₽",
@@ -284,8 +335,8 @@ async def callback_buy_7_days(callback: CallbackQuery):
 async def callback_buy_30_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
-
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="vless")
+    kb = get_payment_kb(days=days, vpn_type="vless", payment=payment)
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['30_days']}₽",
         reply_markup=kb
@@ -296,16 +347,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "vless"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="vless")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_90_days_vless")
 async def callback_buy_90_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
-
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="vless")
+    kb = get_payment_kb(days=days, vpn_type="vless", payment=payment)
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['90_days']}₽",
         reply_markup=kb
@@ -316,16 +368,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "vless"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="vless")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_180_days_vless")
 async def callback_buy_180_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
-
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="vless")
+    kb = get_payment_kb(days=days, vpn_type="vless", payment=payment)
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['180_days']}₽",
         reply_markup=kb
@@ -336,16 +389,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "vless"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="vless")
+
+    await callback.answer()
     
 @dp.callback_query(F.data == "buy_365_days_vless")
 async def callback_buy_365_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_vless(telegram_id=telegram_id, days=days)
-
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="vless")
+    kb = get_payment_kb(days=days, vpn_type="vless", payment=payment)
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES['365_days']}₽",
         reply_markup=kb
@@ -356,15 +410,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "vless"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="vless")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_7_days_wireguard")
 async def callback_buy_7_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_wireguard(telegram_id=telegram_id, days=days)
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="wireguard")
+    kb = get_payment_kb(days=days, vpn_type="wireguard", payment=payment)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽",
@@ -376,15 +432,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "wireguard"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_30_days_wireguard")
 async def callback_buy_30_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_wireguard(telegram_id=telegram_id, days=days)
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="wireguard")
+    kb = get_payment_kb(days=days, vpn_type="wireguard", payment=payment)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽",
@@ -396,15 +454,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "wireguard"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_90_days_wireguard")
 async def callback_buy_90_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_wireguard(telegram_id=telegram_id, days=days)
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="wireguard")
+    kb = get_payment_kb(days=days, vpn_type="wireguard", payment=payment)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽",
@@ -416,15 +476,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "wireguard"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "buy_180_days_wireguard")
 async def callback_buy_180_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_wireguard(telegram_id=telegram_id, days=days)
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="wireguard")
+    kb = get_payment_kb(days=days, vpn_type="wireguard", payment=payment)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽",
@@ -436,15 +498,17 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "wireguard"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
+
+    await callback.answer()
     
 @dp.callback_query(F.data == "buy_365_days_wireguard")
 async def callback_buy_365_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
-    kb = await get_payment_kb_wireguard(telegram_id=telegram_id, days=days)
+    payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type="wireguard")
+    kb = get_payment_kb(days=days, vpn_type="wireguard", payment=payment)
 
     await callback.message.edit_text(
         f"Оплатите счёт на сумму {prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽",
@@ -456,9 +520,10 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-    vpn_type = "wireguard"
 
-    await referral_system_payment(telegram_id, price, callback, days, vpn_type)
+    await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
+
+    await callback.answer()
     
 @dp.callback_query(F.data == "vless_instruction")
 async def callback_instruction_chosen(callback: CallbackQuery):

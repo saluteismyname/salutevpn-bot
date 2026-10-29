@@ -1,12 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from database.models import User
-from payments.payments import create_payment
 import payments.prices as prices
 from database.engine import session_maker
 from sqlalchemy import select
 
 def get_start_kb() -> ReplyKeyboardMarkup:
+    
     kb = ReplyKeyboardBuilder()
     kb.button(text="💵 Купить")
     kb.button(text="📜 Инструкция")
@@ -18,6 +18,7 @@ def get_start_kb() -> ReplyKeyboardMarkup:
     return kb.as_markup(resize_keyboard=True)
 
 def get_type_buy_kb() -> InlineKeyboardMarkup:
+   
     kb = InlineKeyboardBuilder()
     kb.button(text="Vless", callback_data="buy_period_vless")
     kb.button(text="WireGuard / AmneziaWG", callback_data="buy_period_wireguard")
@@ -27,6 +28,7 @@ def get_type_buy_kb() -> InlineKeyboardMarkup:
     return kb.as_markup()
 
 def get_buy_period_kb_vless() -> InlineKeyboardMarkup:
+   
     one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
     one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
     three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
@@ -47,6 +49,7 @@ def get_buy_period_kb_vless() -> InlineKeyboardMarkup:
     return kb.as_markup()
 
 def get_buy_period_kb_wireguard() -> InlineKeyboardMarkup:
+    
     one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
     one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
     three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
@@ -134,189 +137,42 @@ def get_trial_type_kb():
         text="🎁 Активировать пробный период Vless",
         callback_data="activate_trial_vless"
     )
-
     kb.button(
         text="🎁 Активировать пробный период AmneziaWG",
-        callback_data="activate_trial_wg"
+        callback_data="activate_trial_wireguard"
     )
 
     kb.adjust(1)
 
     return kb.as_markup()
 
-async def get_payment_kb_vless(telegram_id: int, days: int) -> InlineKeyboardMarkup:
-    
-    base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-
-    async with session_maker() as session:        
-
-        user_query = select(User).where(User.telegram_id == telegram_id)
-        user_result = await session.execute(user_query)
-        user = user_result.scalar_one()
-        
-        bonus_balance = user.bonus_balance
+def get_payment_kb(days: int, vpn_type: str, payment: object) -> InlineKeyboardMarkup:
     
     kb = InlineKeyboardBuilder()
 
-    # Сценарий А: Бонусов хватает на полную оплату
-    if bonus_balance >= base_price:
-
-        async with session_maker() as session:
-            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
-            # В metadata передаем id заказа, чтобы связать его при получении вебхука
-            payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="vless",
-                amount_value=base_price,
-                bonuses_spent=0,
-            )
-
-        payment_url = payment['confirmation']['confirmation_url']
-        
+    if payment["bonuses_to_spend"] > 0 and payment["bonuses_to_spend"] < payment["base_price"]:
+        btn_text = f"💵 Списать {payment['bonuses_to_spend']} бонусов + Оплатить {payment['final_amount']}₽."
+        kb.button(text=btn_text, url=payment["payment_with_bonuses_url"])
         kb.button(
-            text=f"💳 Оплатить",
-            url=payment_url
+                    text=f"💳 Оплатить картой",
+                    url=payment["payment_without_bonuses_url"]
+                )
+    elif payment["bonuses_spendable_for_full"] == True:
+        kb.button(
+                text=f"🎁 Оплатить полностью бонусами ({prices.SUBSCRIPTION_PRICES[f'{days}_days']}₽.)", 
+                callback_data=f"pay_full_bonuses_{days}_days_{vpn_type}"
         )
-
-        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
-
         kb.button(
-            text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
-            callback_data=f"pay_full_bonuses_{days}_days_vless"
+                    text=f"💳 Оплатить картой",
+                    url=payment["payment_without_bonuses_url"]
         )
     else:
-        # Сценарий Б: Бонусов не хватает, делаем частичную скидку (или бонусов 0)
-        bonuses_to_spend = int(bonus_balance) # сколько бонусов спишем (все доступные)
-        final_amount = base_price - bonuses_to_spend # сколько останется доплатить картой
-        
-        async with session_maker() as session:
-            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
-            # В metadata передаем id заказа, чтобы связать его при получении вебхука
-            payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="vless",
-                amount_value=final_amount,
-                bonuses_spent=bonuses_to_spend,
-            )
-
-            payment_without_bonuses = payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="vless",
-                amount_value=base_price,
-                bonuses_spent=0,
-            )
-        
-        payment_url = payment['confirmation']['confirmation_url']
-        payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']
-
-        if bonuses_to_spend > 0:
-            kb.button(
-                text=f"💳 Оплатить",
-                url=payment_without_bonuses_url
-            )
-            btn_text = f"💵 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-            kb.button(text=btn_text, url=payment_url)
-        else:
-            kb.button(
-                text=f"💳 Оплатить",
-                url=payment_without_bonuses_url
-            )
-        
-    kb.button(text="🔙 Назад", callback_data="buy_period_vless")
-    kb.adjust(1)
-
-    return kb.as_markup()
-
-async def get_payment_kb_wireguard(telegram_id: int, days: int) -> InlineKeyboardMarkup:
-    
-    base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-
-    async with session_maker() as session:        
-
-        user_query = select(User).where(User.telegram_id == telegram_id)
-        user_result = await session.execute(user_query)
-        user = user_result.scalar_one()
-        
-        bonus_balance = user.bonus_balance
-    
-    kb = InlineKeyboardBuilder()
-
-    # Сценарий А: Бонусов хватает на полную оплату
-    if bonus_balance >= base_price:
-        async with session_maker() as session:
-            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
-            # В metadata передаем id заказа, чтобы связать его при получении вебхука
-            payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="wireguard",
-                amount_value=base_price,
-                bonuses_spent=0,
-            )
-        
-        payment_url = payment['confirmation']['confirmation_url']
-                
         kb.button(
             text=f"💳 Оплатить картой",
-            url=payment_url
+            url=payment["payment_without_bonuses_url"]
         )
 
-        # Здесь вместо ссылки на оплату YooKassa мы ведем на callback-хэндлер полной оплаты бонусами
-        kb.button(
-            text=f"🎁 Оплатить полностью бонусами ({base_price}₽.)", 
-            callback_data=f"pay_full_bonuses_{days}_days_wireguard"
-        )
-
-    else:
-        # Сценарий Б: Бонусов не хватает, делаем частичную скидку (или бонусов 0)
-        bonuses_to_spend = int(bonus_balance) # сколько бонусов спишем (все доступные)
-        final_amount = base_price - bonuses_to_spend # сколько останется доплатить картой
-        
-        async with session_maker() as session:
-            # Создаем платеж в YooKassa на оставшуюся сумму (final_amount)
-            # В metadata передаем id заказа, чтобы связать его при получении вебхука
-            payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="wireguard",
-                amount_value=final_amount,
-                bonuses_spent=bonuses_to_spend,
-            )
-
-            payment_without_bonuses = payment = await create_payment(
-                session=session,
-                telegram_id=telegram_id,
-                days=days,
-                vpn_type="wireguard",
-                amount_value=base_price,
-                bonuses_spent=0,
-            )
-        
-        payment_url = payment['confirmation']['confirmation_url']
-        payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']
-        
-        if bonuses_to_spend > 0:
-            btn_text = f"💵 Списать {bonuses_to_spend} бонусов + Оплатить {final_amount}₽."
-            kb.button(text=btn_text, url=payment_url)
-            kb.button(
-                text=f"💳 Оплатить полностью картой",
-                url=payment_without_bonuses_url
-            )
-        else:
-            kb.button(
-                text=f"💳 Оплатить",
-                url=payment_without_bonuses_url
-            )  
-
-    kb.button(text="🔙 Назад", callback_data="buy_period_wireguard")
+    kb.button(text="🔙 Назад", callback_data=f"buy_period_{vpn_type}")
     kb.adjust(1)
 
     return kb.as_markup()
