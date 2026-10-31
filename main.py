@@ -1,7 +1,8 @@
 import asyncio
+from datetime import datetime, timezone
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-from keyboards.keyboards import get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_payment_kb, get_trial_type_kb
+from keyboards.keyboards import format_days_second, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -13,7 +14,7 @@ from aiogram import F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import BufferedInputFile, Message, CallbackQuery
 from aiogram import html
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.filters.callback_data import CallbackData
@@ -25,13 +26,17 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
 from services.payment import get_payment_data
+from services.remnawave import get_user_remnawave
 from services.trial_delivery import process_trial_vpn_delivery
+from services.wg_easy import get_user_wg_easy
 from services.yookassa_api import yookassa_webhook_handler
 from database.models import Base  # Твой импорт базового класса моделей
 from database.engine import engine # Твой импорт асинхронного движка
 from aiogram.utils.deep_linking import create_start_link
 from database.engine import session_maker
 from services.referral_system import referral_system_payment, referral_system_registration
+from rich import print as rprint
+from services.get_subscription import get_subscription
 
 logging.basicConfig(
     level=logging.INFO,  # С какого уровня показывать сообщения (INFO и выше)
@@ -152,6 +157,29 @@ async def instruction_message(message: Message):
     await message.answer(
         "Выберите протокол для инструкции: ",
         reply_markup=get_instruction_kb()
+    )
+
+@dp.message(F.text == "📋 Мои подписки")
+async def instruction_message(message: Message):
+
+    async with session_maker() as session:
+        result = await session.execute(
+            select(Order, User)
+            .join(User, Order.telegram_id == User.telegram_id).where(
+                Order.telegram_id == message.from_user.id,
+                Order.is_for_friend == False,
+                Order.status == "paid"
+            ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
+            .distinct(Order.vpn_type)
+        )
+        orders = result.all()
+            
+    for order, user in orders:
+        print(order.vpn_type, user.expires_at_vless, user.expires_at_wireguard)
+
+    await message.answer(
+        "Выберите подписку: ",
+        reply_markup=get_subscriptions_kb(orders)
     )
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
@@ -519,6 +547,72 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 
     await referral_system_payment(telegram_id, price, callback, days, vpn_type="wireguard")
 
+@dp.callback_query(F.data.startswith("select_order:_"))
+async def select_order(callback: CallbackQuery, session: AsyncSession):
+
+    subscription = await get_subscription(int(callback.data.split("_")[2]), session)
+    now = datetime.now(timezone.utc)
+    order, user = subscription
+
+    if order.vpn_type == "vless":
+        expires_at = user.expires_at_vless if user.expires_at_vless else "Бессрочно"
+        vless_get = await get_user_remnawave(user.remnawave_uuid)
+        vless_key = vless_get['response']['subscriptionUrl']
+        vpn_name = "Vless"
+
+        if expires_at > now:
+            is_active = "🟢 Активна\n"
+            lasts_to = "Действует до:"
+        else:
+            is_active = "🔴 Истекла\n"
+            lasts_to = "Действовала до:"
+
+        await callback.message.edit_text(
+            f"📱 Подписка: {vpn_name}\n"
+            f"Статус: {is_active}\n"
+            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"
+            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"
+            "───────────────────\n"
+            "⚡ Скорость: До 1 Gbps (без ограничений)\n"
+            "👥 Подключенных устройств: 1 из 5\n\n"
+            "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
+            f"<code>{vless_key}</code>",
+            parse_mode="HTML"
+        )
+
+    else:
+        expires_at = user.expires_at_wireguard if user.expires_at_wireguard else "Бессрочно"
+        vpn_name = "WireGuard"
+        config = await get_user_wg_easy(user.wg_id)
+        config_file = BufferedInputFile(
+            file=config.encode("utf-8"), 
+            filename=f"Salute_VPN_{user.telegram_id}.conf"
+        )
+
+        if expires_at > now:
+            is_active = "🟢 Активна\n"
+            lasts_to = "Действует до:"
+        else:
+            is_active = "🔴 Истекла\n"
+            lasts_to = "Действовала до:"
+
+        msg = f"📱 Подписка: {vpn_name}\n"\
+            f"Статус: {is_active}\n"\
+            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"\
+            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"\
+            "───────────────────\n"\
+            "⚡ Скорость: До 1 Gbps (без ограничений)\n"\
+            "👥 Подключенных устройств: 1 из 5\n\n"\
+            "💡 Скачайте конфиг выше 👆 и вставьте в ваше приложение:\n"\
+
+        await callback.bot.send_document(
+            chat_id=user.telegram_id,
+            caption=msg,
+            document=config_file,
+            parse_mode="HTML"
+        )
+
+    await callback.answer()
     
 @dp.callback_query(F.data == "vless_instruction")
 async def callback_instruction_chosen(callback: CallbackQuery):

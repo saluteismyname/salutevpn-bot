@@ -103,10 +103,13 @@ async def process_vpn_delivery(
             elif order.days == 365:
                 msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
 
-            await bot.send_message(
-                chat_id=user.telegram_id,
-                text=msg
-            )
+            try:
+                await bot.send_message(
+                    chat_id=user.telegram_id,
+                    text=msg
+                )
+            except Exception as e:
+                logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
 
             return True
         except httpx.HTTPStatusError as e:
@@ -184,6 +187,15 @@ async def process_vpn_delivery(
                 caption=msg,
                 document=config_file
             )
+
+            try:
+                await bot.send_message(
+                    chat_id=user.telegram_id,
+                    caption=msg,
+                    document=config_file
+                )
+            except Exception as e:
+                logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
 
             return True
         except Exception as e:

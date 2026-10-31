@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from database.models import User
@@ -9,11 +11,13 @@ def get_start_kb() -> ReplyKeyboardMarkup:
     
     kb = ReplyKeyboardBuilder()
     kb.button(text="💵 Купить")
+    kb.button(text="📋 Мои подписки")
     kb.button(text="📜 Инструкция")
+    kb.button(text="💬 Помощь")
     kb.button(text="🎁 Активировать пробную подписку")
     kb.button(text="🎁 Реферальная система")
-    kb.button(text="💬 Помощь")
-    kb.adjust(2, 1, 1, 1)
+    
+    kb.adjust(2, 2, 1, 1)
 
     return kb.as_markup(resize_keyboard=True)
 
@@ -69,28 +73,6 @@ def get_buy_period_kb_wireguard() -> InlineKeyboardMarkup:
     
     return kb.as_markup()
 
-def get_instruction_kb() -> InlineKeyboardMarkup:
-
-    kb = InlineKeyboardBuilder()
-    kb.button(text="Vless", callback_data="vless_instruction")
-    kb.button(text="WireGuard / AmneziaWG", callback_data="wireguard_instruction")
-
-    kb.adjust(1)
-
-    return kb.as_markup()
-
-def get_vless_instruction_kb() -> InlineKeyboardMarkup:
-
-    kb = InlineKeyboardBuilder()
-
-    return kb.as_markup()
-
-def get_wireguard_instruction_kb() -> InlineKeyboardMarkup:
-
-    kb = InlineKeyboardBuilder()
-
-    return kb.as_markup()
-
 def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
 
     one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
@@ -127,6 +109,39 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     kb.button(text="🔙 Назад", callback_data="buy_type_wireguard")
     kb.adjust(1)
     
+    return kb.as_markup()
+
+def get_subscriptions_kb(telegram_id) -> InlineKeyboardMarkup:
+
+    kb = InlineKeyboardBuilder()
+
+    kb.button(text="Vless", callback_data="vless_instruction")
+    kb.button(text="WireGuard / AmneziaWG", callback_data="wireguard_instruction")
+
+    kb.adjust(1)
+
+    return kb.as_markup()
+
+def get_instruction_kb() -> InlineKeyboardMarkup:
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="Vless", callback_data="vless_instruction")
+    kb.button(text="WireGuard / AmneziaWG", callback_data="wireguard_instruction")
+
+    kb.adjust(1)
+
+    return kb.as_markup()
+
+def get_vless_instruction_kb() -> InlineKeyboardMarkup:
+
+    kb = InlineKeyboardBuilder()
+
+    return kb.as_markup()
+
+def get_wireguard_instruction_kb() -> InlineKeyboardMarkup:
+
+    kb = InlineKeyboardBuilder()
+
     return kb.as_markup()
 
 def get_trial_type_kb():
@@ -176,3 +191,52 @@ def get_payment_kb(days: int, vpn_type: str, payment: object) -> InlineKeyboardM
     kb.adjust(1)
 
     return kb.as_markup()
+
+def get_subscriptions_kb(orders: object):
+    kb = InlineKeyboardBuilder()
+    now = datetime.now(timezone.utc)
+    
+    for order, user in orders:
+        vpn_info = {
+            "vless": ("Vless", user.expires_at_vless),
+            "wireguard": ("WireGuard", user.expires_at_wireguard)
+        }
+        
+        pretty_name, expire_date = vpn_info.get(order.vpn_type)
+        pretty_date = (expire_date - now).days
+
+        if expire_date:
+            remaining_days = (expire_date - now).days
+            if remaining_days > 0:
+        
+                days_text = f"{format_days(remaining_days)}"
+            else:
+                days_text = "Подписка истекла"
+        else:
+            days_text = f"{format_days(order.days)}"
+
+        btn_text = f"📦 {pretty_name} | {days_text}"
+        kb.button(
+            text=btn_text,
+            callback_data=f"select_order:_{order.id}"
+        )
+
+    kb.adjust(1)
+    
+    return kb.as_markup()
+
+def format_days(n: int) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return f"{n} день"
+    elif 2 <= n % 10 <= 4 and (n % 100 < 10 or n % 100 >= 20):
+        return f"{n} дня"
+    else:
+        return f"{n} дней"
+
+def format_days_second(n: int) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return f"Остался {n} день"
+    elif 2 <= n % 10 <= 4 and (n % 100 < 10 or n % 100 >= 20):
+        return f"Осталось {n} дня"
+    else:
+        return f"Осталось {n} дней"

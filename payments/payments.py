@@ -5,7 +5,7 @@ from yookassa import Payment
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Order
 
-async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn_type: str, amount_value: int, bonuses_spent: int):
+async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn_type: str, amount_value: int, bonuses_spent: int, is_for_friend: bool):
 
     new_order = Order(
         telegram_id=telegram_id,
@@ -13,7 +13,8 @@ async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn
         days=days,
         amount_value=amount_value,
         status="pending",
-        bonuses_spent=bonuses_spent
+        bonuses_spent=bonuses_spent,
+        is_for_friend=is_for_friend
     )
 
     session.add(new_order)

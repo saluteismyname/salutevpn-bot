@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 
-from sqlalchemy import BigInteger, ForeignKey, Integer, String, Boolean, Column, DateTime
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Boolean, Column, DateTime, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from database.engine import Base
@@ -58,6 +58,8 @@ class Order(Base):
     amount_value: Mapped[int] = mapped_column(Integer)
 
     status: Mapped[str] = mapped_column(String(50), default="pending")
+
+    is_for_friend: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
