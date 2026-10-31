@@ -117,9 +117,7 @@ async def process_trial_vpn_delivery(
             user.expires_at_wireguard += days_to_add
             user.is_trial_available_wireguard = False
             
-            await edit_user_wg_easy(telegram_id=telegram_id, expires_at_fix=expires_at_fix, days_to_add=days_to_add)
-            print('111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111', telegram_id, user.expires_at_wireguard, days_to_add)
-        
+            await edit_user_wg_easy(telegram_id=telegram_id, expires_at_fix=expires_at_fix, days_to_add=days_to_add)        
         try:
             await session.commit()
             logger.info(f"Пробная подписка для пользователя {user.telegram_id} с типом VPN WireGuard успешно обновлена!")

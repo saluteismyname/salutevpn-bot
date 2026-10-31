@@ -118,7 +118,7 @@ async def start(message: Message, command: CommandObject, session: AsyncSession)
 
     await message.answer(html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
             "🛍️ После приобретения товара Вы получите: \n\n"
-            "✅ Персональную ссылку-подписку, передающуюся только в Ваши руки сроком на 6 или 12 месяцев \n"
+            "✅ Персональную ссылку-подписку, передающуюся только в Ваши руки с удобным для Вас сроком\n"
             "✅ Высокую скорость интернета \n"
             "✅ Низкий пинг! \n"
             "✅ Стабильную работу на всех ваших устройствах: iOS, Android, Windows, MacOS, TV и роутеры (подписка распространяется на 3 устройства) \n"
@@ -581,7 +581,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             "⚡ Скорость: До 1 Gbps (без ограничений)\n"
             "👥 Подключенных устройств: 1 из 5\n\n"
             "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
-            f"<code>{vless_key}</code>",
+            f"<pre>{vless_key}</pre>",
             parse_mode="HTML"
         )
 
@@ -608,7 +608,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             "───────────────────\n"\
             "⚡ Скорость: До 1 Gbps (без ограничений)\n"\
             "👥 Подключенных устройств: 1 из 5\n\n"\
-            "💡 Скачайте конфиг выше 👆 и вставьте в ваше приложение:\n"\
+            "💡 Скачайте конфиг выше ☝️ и вставьте в ваше приложение:\n"\
 
         await callback.bot.send_document(
             chat_id=user.telegram_id,
