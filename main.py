@@ -177,8 +177,13 @@ async def instruction_message(message: Message):
     for order, user in orders:
         print(order.vpn_type, user.expires_at_vless, user.expires_at_wireguard)
 
+    if orders:
+        text = "Выберите подписку: "
+    else:
+        text = "У Вас ещё нет активных подписок."
+
     await message.answer(
-        "Выберите подписку: ",
+        text=text,
         reply_markup=get_subscriptions_kb(orders)
     )
 
