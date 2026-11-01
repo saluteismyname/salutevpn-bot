@@ -15,12 +15,14 @@ remnawave_internal_squad = config.remnawave_internal_squad
 
 async def create_user_remnawave(expires_at: str, telegram_id: int, is_for_friend: bool, num_of_friends_vless: int) -> object:
     
-    if config.testing and is_for_friend == False:
+    if config.testing == True and is_for_friend == False:
         rand_num = random.randint(123456789, 987654321)
         username = f"test_{rand_num}_{telegram_id}"
-    elif is_for_friend == True:
+    elif config.testing == True and is_for_friend == True:
+        username = f"test_user_{telegram_id}_for_friend_{num_of_friends_vless}"
+    elif config.testing == False and is_for_friend == True:
         username = f"user_{telegram_id}_for_friend_{num_of_friends_vless}"
-    else:
+    else: 
         username = f"user_{telegram_id}"
 
     async with httpx.AsyncClient() as client:
