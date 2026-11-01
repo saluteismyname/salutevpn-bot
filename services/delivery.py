@@ -216,7 +216,7 @@ async def process_vpn_delivery(
         # Создаем пользователя в Remnawave или редактирование
         if not user.remnawave_uuid and order.is_for_friend == False:
             try:
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends_vless=user.num_of_friends_vless)
                 if response:
                     user.remnawave_uuid = response["response"]["uuid"]                
                 try:
@@ -231,11 +231,11 @@ async def process_vpn_delivery(
         elif order.is_for_friend == True:
             expires_at_date = now + timedelta(days=order.days)
             if isinstance(expires_at, datetime):
-                expires_at = expires_at.isoformat()
+                expires_at = str(expires_at.isoformat())
             else:
                 expires_at = str(expires_at)
-            user.num_of_friends_vless += 1
             try:
+                user.num_of_friends_vless += 1
                 response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
                 order.remnawave_uuid = response["response"]["shortUuid"]
                 await session.commit()
