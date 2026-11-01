@@ -13,11 +13,14 @@ remnawave_token = config.remnawave_token.get_secret_value()
 remnawave_url = config.remnawave_url
 remnawave_internal_squad = config.remnawave_internal_squad
 
-async def create_user_remnawave(expires_at: datetime, telegram_id: int):
+async def create_user_remnawave(expires_at: datetime, telegram_id: int, is_for_friend: bool, num_of_friends: int):
     
-    if config.testing:
+    if config.testing and is_for_friend == False:
         rand_num = random.randint(123456789, 987654321)
         username = f"test_{rand_num}_{telegram_id}"
+    elif is_for_friend:
+        num_for_friend = num_of_friends + 1
+        username = f"user_{telegram_id}_for_friend_{num_for_friend}"
     else:
         username = f"user_{telegram_id}"
     
@@ -30,7 +33,7 @@ async def create_user_remnawave(expires_at: datetime, telegram_id: int):
                 },
             json={
                 "username": username,
-                "expireAt": expires_at,
+                "expireAt": expires_at.isoformat(),
                 "telegramId": telegram_id,
                 "status": "ACTIVE",
                 "activeInternalSquads": [

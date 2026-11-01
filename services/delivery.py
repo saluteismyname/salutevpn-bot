@@ -62,14 +62,15 @@ async def process_vpn_delivery(
 
         expires_at = user.expires_at_vless.isoformat() # API запрос принимает только iso формат
         # Создаем пользователя в Remnawave или редактирование
-        if not user.remnawave_uuid:
+        if not user.remnawave_uuid and order.is_for_friend == False:
             try:
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id)
+                        
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
                 
                 uuid_value = response.get("response", {}).get("uuid")
 
                 if uuid_value:
-                    user.remnawave_uuid = response["response"]["uuid"]
+                    user.remnawave_uuid = response.get("response", {}).get("uuid")
                 try:
                     await session.commit()
                 except Exception as e:
@@ -79,6 +80,12 @@ async def process_vpn_delivery(
                 logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
             except Exception as e:
                 logger.exception(f"Общая ошибка:")
+        elif order.is_for_friend == True:
+            expires_at = now + timedelta(days=order.days)
+            num_of_friends = user.num_of_friends
+            user.num_of_friends += 1
+            await session.commit()
+            response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends=num_of_friends)
         else:
             try:
                 await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=user.expires_at_vless)
@@ -90,7 +97,7 @@ async def process_vpn_delivery(
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
             vless_response = await get_user_remnawave(remnawave_uuid = user.remnawave_uuid)
-            vless_subscription = vless_response['response']['subscriptionUrl']
+            vless_subscription = vless_response["response"]["subscriptionUrl"]
 
             if order.days < 30:
                 msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
@@ -170,7 +177,7 @@ async def process_vpn_delivery(
                 file=config.encode("utf-8"), 
                 filename=f"Salute_VPN_{user.telegram_id}.conf"
             )
-
+            
             if order.days < 30:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
             elif order.days == 30:
@@ -182,17 +189,12 @@ async def process_vpn_delivery(
             elif order.days == 365:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
 
-            await bot.send_document(
-                chat_id=user.telegram_id,
-                caption=msg,
-                document=config_file
-            )
-
             try:
-                await bot.send_message(
+                await bot.send_document(
                     chat_id=user.telegram_id,
+                    document=config_file,
                     caption=msg,
-                    document=config_file
+                    parse_mode="HTML"
                 )
             except Exception as e:
                 logger.exception(f"Не удалось отправить уведомление об оплате: {e}")

@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from payments.payments import create_payment
 
-async def get_payment_data(telegram_id: int, days: int, vpn_type: str):
+async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_friend: bool):
    
     base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
         
@@ -26,15 +26,14 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str):
             vpn_type=vpn_type,
             amount_value=base_price,
             bonuses_spent=0,
-            is_for_friend=False
+            is_for_friend=is_for_friend
         )
 
-        bonuses_to_spend = 0
         payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']
 
         return {
             "payment_without_bonuses_url": payment_without_bonuses_url, 
-            "bonuses_to_spend": bonuses_to_spend,
+            "bonuses_to_spend": 0,
             "bonuses_spendable_for_full": False
         }
         
@@ -48,7 +47,7 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str):
             vpn_type=vpn_type,
             amount_value=final_amount,
             bonuses_spent=bonus_balance,
-            is_for_friend=False
+            is_for_friend=is_for_friend
         )
 
         payment_without_bonuses = payment = await create_payment(
@@ -58,7 +57,7 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str):
             vpn_type=vpn_type,
             amount_value=base_price,
             bonuses_spent=0,
-            is_for_friend=False
+            is_for_friend=is_for_friend
         )
         
         payment_with_bonuses_url = payment_with_bonuses['confirmation']['confirmation_url']
@@ -82,7 +81,7 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str):
             vpn_type=vpn_type,
             amount_value=base_price,
             bonuses_spent=0,
-            is_for_friend=False
+            is_for_friend=is_for_friend
         )
 
         payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']

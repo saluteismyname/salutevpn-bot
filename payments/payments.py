@@ -37,7 +37,8 @@ async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn
             "telegram_id": str(f"{telegram_id}"),
             "vpn_type": str(f"{vpn_type}"),
             "days": str(f"{days}"),
-            "order_id": str(f"{new_order.id}")
+            "order_id": str(f"{new_order.id}"),
+            "is_for_friend": str(f"{is_for_friend}")
         }
     }, uuid.uuid4())
     

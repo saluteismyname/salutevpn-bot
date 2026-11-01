@@ -20,6 +20,7 @@ class User(Base):
     wg_id: Mapped[str | None] = mapped_column(String(255))
 
     referrer_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.telegram_id"))
+    num_of_friends: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     bonus_balance: Mapped[float] = mapped_column(default=0)
 
     is_trial_available_vless: Mapped[bool] = mapped_column(

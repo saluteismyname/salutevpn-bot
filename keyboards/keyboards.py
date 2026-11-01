@@ -46,7 +46,7 @@ def get_buy_period_kb_vless() -> InlineKeyboardMarkup:
     kb.button(text=three_months, callback_data="buy_90_days_vless")
     kb.button(text=six_months, callback_data="buy_180_days_vless")
     kb.button(text=twelve_months, callback_data="buy_365_days_vless")
-    kb.button(text=buy_for_friend, callback_data="buy_for_friend_vless")
+    kb.button(text=buy_for_friend, callback_data="buy_for_friend_menu_vless")
     kb.button(text="🔙 Назад", callback_data="buy_type")
     kb.adjust(1)
     
@@ -67,7 +67,7 @@ def get_buy_period_kb_wireguard() -> InlineKeyboardMarkup:
     kb.button(text=three_months, callback_data="buy_90_days_wireguard")
     kb.button(text=six_months, callback_data="buy_180_days_wireguard")
     kb.button(text=twelve_months, callback_data="buy_365_days_wireguard")
-    kb.button(text=buy_for_friend, callback_data="buy_for_friend_wireguard")
+    kb.button(text=buy_for_friend, callback_data="buy_for_friend_menu_wireguard")
     kb.button(text="🔙 Назад", callback_data="buy_type")
     kb.adjust(1)
     
@@ -82,12 +82,12 @@ def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
     twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=one_week, callback_data="buy_7_days_vless_friend")
-    kb.button(text=one_month, callback_data="buy_30_days_vless_friend")
-    kb.button(text=three_months, callback_data="buy_90_days_vless_friend")
-    kb.button(text=six_months, callback_data="buy_180_days_vless_friend")
-    kb.button(text=twelve_months, callback_data="buy_365_days_vless_friend")
-    kb.button(text="🔙 Назад", callback_data="get_buy_type_kb")
+    kb.button(text=one_week, callback_data="buy_7_days_vless_for_friend")
+    kb.button(text=one_month, callback_data="buy_30_days_vless_for_friend")
+    kb.button(text=three_months, callback_data="buy_90_days_vless_for_friend")
+    kb.button(text=six_months, callback_data="buy_180_days_vless_for_friend")
+    kb.button(text=twelve_months, callback_data="buy_365_days_vless_for_friend")
+    kb.button(text="🔙 Назад", callback_data="buy_period_vless")
     kb.adjust(1)
     
     return kb.as_markup()
@@ -101,12 +101,12 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=one_week, callback_data="buy_7_days_wireguard_friend")
-    kb.button(text=one_month, callback_data="buy_30_days_wireguard_friend")
-    kb.button(text=three_months, callback_data="buy_90_days_wireguard_friend")
-    kb.button(text=six_months, callback_data="buy_180_days_wireguard_friend")
-    kb.button(text=twelve_months, callback_data="buy_365_days_wireguard_friend")
-    kb.button(text="🔙 Назад", callback_data="buy_type_wireguard")
+    kb.button(text=one_week, callback_data="buy_7_days_wireguard_for_friend")
+    kb.button(text=one_month, callback_data="buy_30_days_wireguard_for_friend")
+    kb.button(text=three_months, callback_data="buy_90_days_wireguard_for_friend")
+    kb.button(text=six_months, callback_data="buy_180_days_wireguard_for_friend")
+    kb.button(text=twelve_months, callback_data="buy_365_days_wireguard_for_friend")
+    kb.button(text="🔙 Назад", callback_data="buy_period_wireguard")
     kb.adjust(1)
     
     return kb.as_markup()
@@ -161,7 +161,7 @@ def get_trial_type_kb():
 
     return kb.as_markup()
 
-def get_payment_kb(days: int, vpn_type: str, payment: object) -> InlineKeyboardMarkup:
+def get_payment_kb(days: int, vpn_type: str, payment: object, is_for_friend: bool) -> InlineKeyboardMarkup:
     
     kb = InlineKeyboardBuilder()
 
@@ -195,6 +195,7 @@ def get_payment_kb(days: int, vpn_type: str, payment: object) -> InlineKeyboardM
 def get_subscriptions_kb(orders: object):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
+    buttons_count = 0
     
     for order, user in orders:
         vpn_info = {
@@ -221,7 +222,18 @@ def get_subscriptions_kb(orders: object):
             callback_data=f"select_order:_{order.id}"
         )
 
-    kb.adjust(1)
+        buttons_count += 1
+
+
+    kb.button(
+                text='Подписки друзей 🔽',
+                callback_data='empty'
+            )
+
+    if buttons_count > 1:
+        kb.adjust(2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+    else:
+        kb.adjust(1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
     
     return kb.as_markup()
 
