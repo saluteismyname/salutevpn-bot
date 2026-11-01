@@ -63,6 +63,9 @@ class Order(Base):
 
     is_for_friend: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    remnawave_uuid: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    wg_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

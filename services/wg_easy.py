@@ -20,7 +20,7 @@ password = config.wg_easy_password.get_secret_value()
 
 url = config.wg_easy_url
 
-async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_friend: bool):
+async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_friend: bool, num_of_friends_wireguard: int | None):
     
     async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
         # Авторизация
@@ -37,8 +37,12 @@ async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_fr
 
         expires_at = expires_at.strftime("%d.%m.%Y")
 
-        if config.testing:
+        if config.testing and is_for_friend == False:
             name = f"test_{expires_at}_{telegram_id}"
+        elif config.testing and is_for_friend == True:
+            name = f"test_{expires_at}_{telegram_id}_for_friend_{num_of_friends_wireguard}"
+        elif is_for_friend == True:
+            name = f"{expires_at}_{telegram_id}_for_friend_{num_of_friends_wireguard}"
         else:
             name = f"{expires_at}_{telegram_id}"
 

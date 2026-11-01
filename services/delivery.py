@@ -127,7 +127,7 @@ async def process_vpn_delivery(
             expires_at_fix = None
             user.expires_at_wireguard = now + days_to_add
             try:
-                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add)
+                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None)
                 user.wg_id = wg_user
                 try:
                     await session.commit()
@@ -218,7 +218,7 @@ async def process_vpn_delivery(
             try:
                 response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
                 if response:
-                    user.remnawave_uuid = response["response"]["uuid"]
+                    user.remnawave_uuid = response["response"]["uuid"]                
                 try:
                     await session.commit()
                 except Exception as e:
@@ -234,10 +234,11 @@ async def process_vpn_delivery(
                 expires_at = expires_at.isoformat()
             else:
                 expires_at = str(expires_at)
-            user.num_of_friends += 1
-            await session.commit()
+            user.num_of_friends_vless += 1
             try:
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends=user.num_of_friends)
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
+                order.remnawave_uuid = response["response"]["shortUuid"]
+                await session.commit()
                 try:
                     moscow_time = expires_at_date + timedelta(hours=3)
                     readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
@@ -275,10 +276,15 @@ async def process_vpn_delivery(
 
     elif order.vpn_type == "wireguard" and order.is_for_friend == True:
         expires_at_fix = None
-        user.expires_at_wireguard = now + days_to_add
+        expires_at_wireguard = now + days_to_add
+        user.num_of_friends_wireguard += 1
+        num_of_friends_wireguard = user.num_of_friends_wireguard
+        session.commit()
         try:
-            wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=True)
+            wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=True, num_of_friends_wireguard=num_of_friends_wireguard)
             try:
+                num_of_friends_wireguard += 1
+                order.wg_id = wg_user
                 await session.commit()
             except Exception as e:
                 logger.error(f"Ошибка добавления wg_id в базу данных")
@@ -289,22 +295,14 @@ async def process_vpn_delivery(
             print(error_details)
             return False
         
-        try:
-            await session.commit()
-            logger.info(f"Подписка для пользователя {user.telegram_id} по заказу {payment_id} и типом VPN WireGuard успешно обновлена!")
-        except Exception as e:
-            await session.rollback()
-            logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
-            return False
-        
-        expires_at = user.expires_at_wireguard.strftime("%d.%m.%Y")
+        expires_at = expires_at_wireguard.strftime("%d.%m.%Y")
             
         # Отправляем сообщение пользователю
         try:
             moscow_time = user.expires_at_wireguard + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
-            config = await get_user_wg_easy(wg_id = user.wg_id)
+            config = await get_user_wg_easy(wg_id = order.wg_id)
             config_file = BufferedInputFile(
                 file=config.encode("utf-8"), 
                 filename=f"Salute_VPN_{user.telegram_id}.conf"
