@@ -20,7 +20,7 @@ password = config.wg_easy_password.get_secret_value()
 
 url = config.wg_easy_url
 
-async def create_user_wg_easy(telegram_id: int, days_to_add: datetime):
+async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_friend: bool):
     
     async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
         # Авторизация

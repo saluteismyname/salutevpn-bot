@@ -43,8 +43,9 @@ async def process_vpn_delivery(
     
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     days_to_add = relativedelta(days=order.days)
-    
-    if order.vpn_type == "vless":
+
+    #Ветвление подписки для пользователя
+    if order.vpn_type == "vless" and order.is_for_friend == False:
         if not user.is_active_vpn or not user.expires_at_vless or user.expires_at_vless < datetime.now(timezone.utc):
             user.expires_at_vless = now + days_to_add
         else:
@@ -60,17 +61,14 @@ async def process_vpn_delivery(
             logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
             return False 
 
-        expires_at = user.expires_at_vless.isoformat() # API запрос принимает только iso формат
-        # Создаем пользователя в Remnawave или редактирование
-        if not user.remnawave_uuid and order.is_for_friend == False:
+        expires_at = user.expires_at_vless.isoformat()
+        # Создаем пользователя в Remnawave если его нет
+        if not user.remnawave_uuid:
             try:
-                        
                 response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
                 
-                uuid_value = response.get("response", {}).get("uuid")
-
-                if uuid_value:
-                    user.remnawave_uuid = response.get("response", {}).get("uuid")
+                if response:
+                    user.remnawave_uuid = response["response"]["uuid"]
                 try:
                     await session.commit()
                 except Exception as e:
@@ -80,15 +78,10 @@ async def process_vpn_delivery(
                 logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
             except Exception as e:
                 logger.exception(f"Общая ошибка:")
-        elif order.is_for_friend == True:
-            expires_at = now + timedelta(days=order.days)
-            num_of_friends = user.num_of_friends
-            user.num_of_friends += 1
-            await session.commit()
-            response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends=num_of_friends)
         else:
+            expires_at = user.expires_at_vless + relativedelta(days=order.days)
             try:
-                await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=user.expires_at_vless)
+                await edit_user_remnawave(remnawave_uuid=user.remnawave_uuid, expires_at=expires_at.isoformat())
             except Exception as e:
                 logger.error(f"Ошибка редактирования пользователя: {e}")
         # Отправляем сообщение пользователю
@@ -96,8 +89,10 @@ async def process_vpn_delivery(
             moscow_time = user.expires_at_vless + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
-            vless_response = await get_user_remnawave(remnawave_uuid = user.remnawave_uuid)
-            vless_subscription = vless_response["response"]["subscriptionUrl"]
+            if user.remnawave_uuid:
+                vless_response = await get_user_remnawave(remnawave_uuid = user.remnawave_uuid)
+                if vless_response:
+                    vless_subscription = vless_response["response"]["subscriptionUrl"]
 
             if order.days < 30:
                 msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
@@ -126,8 +121,9 @@ async def process_vpn_delivery(
             # Метод .exception запишет в логи не просто имя ошибки, 
             # а конкретный файл и номер строки, где она упала.
             logger.exception("Произошел сбой при обработке запроса к Remnawave")
-    else:
-        if not user.wg_id: # not user.is_active_vpn or not user.expires_at_wireguard or user.expires_at_wireguard < now:
+
+    elif order.vpn_type == "wireguard" and order.is_for_friend == False:
+        if not user.wg_id: 
             expires_at_fix = None
             user.expires_at_wireguard = now + days_to_add
             try:
@@ -156,6 +152,142 @@ async def process_vpn_delivery(
                 return False
 
         user.is_active_vpn = True
+        
+        try:
+            await session.commit()
+            logger.info(f"Подписка для пользователя {user.telegram_id} по заказу {payment_id} и типом VPN WireGuard успешно обновлена!")
+        except Exception as e:
+            await session.rollback()
+            logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
+            return False
+        
+        expires_at = user.expires_at_wireguard.strftime("%d.%m.%Y")
+            
+        # Отправляем сообщение пользователю
+        try:
+            moscow_time = user.expires_at_wireguard + timedelta(hours=3)
+            readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
+
+            config = await get_user_wg_easy(wg_id = user.wg_id)
+            config_file = BufferedInputFile(
+                file=config.encode("utf-8"), 
+                filename=f"Salute_VPN_{user.telegram_id}.conf"
+            )
+            
+            if order.days < 30:
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>"
+            elif order.days == 30:
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+            elif order.days == 90:
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+            elif order.days == 180:
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+            elif order.days == 365:
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+
+            try:
+                await bot.send_document(
+                    chat_id=user.telegram_id,
+                    document=config_file,
+                    caption=msg,
+                    parse_mode="HTML"
+                )
+            except Exception as e:
+                logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
+
+            return True
+        except Exception as e:
+            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
+            return False
+
+    elif order.vpn_type == "vless" and order.is_for_friend == True:
+
+        expires_at = now + relativedelta(days=order.days)
+        expires_at = expires_at.isoformat()
+
+        try:
+            await session.commit()
+            logger.info(f"Подписка для пользователя {user.telegram_id} по заказу {payment_id} и типом VPN Vless успешно обновлена!")
+        except Exception as e:
+            await session.rollback()
+            logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
+            return False 
+        
+        # Создаем пользователя в Remnawave или редактирование
+        if not user.remnawave_uuid and order.is_for_friend == False:
+            try:
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
+                if response:
+                    user.remnawave_uuid = response["response"]["uuid"]
+                try:
+                    await session.commit()
+                except Exception as e:
+                    logger.error(f"Ошибка добавления uuid в базу данных")
+            except httpx.HTTPStatusError as e:
+                # Выведет точный текст ошибки от сервера Remnawave
+                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+            except Exception as e:
+                logger.exception(f"Общая ошибка:")
+        elif order.is_for_friend == True:
+            expires_at_date = now + timedelta(days=order.days)
+            if isinstance(expires_at, datetime):
+                expires_at = expires_at.isoformat()
+            else:
+                expires_at = str(expires_at)
+            user.num_of_friends += 1
+            await session.commit()
+            try:
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends=user.num_of_friends)
+                try:
+                    moscow_time = expires_at_date + timedelta(hours=3)
+                    readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
+                    vless_subscription = response["response"]["subscriptionUrl"]
+                        
+                    if order.days < 30:
+                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                    elif order.days == 30:
+                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                    elif order.days == 90:
+                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                    elif order.days == 180:
+                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                    elif order.days == 365:
+                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+    
+                    try:
+                        await bot.send_message(
+                            chat_id=user.telegram_id,
+                            text=msg
+                        )
+                    except Exception as e:
+                        logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
+    
+                    return True
+                except httpx.HTTPStatusError as e:
+                    # Выведет точный текст ошибки от сервера Remnawave
+                    logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+                except Exception as e:
+                    # Метод .exception запишет в логи не просто имя ошибки, 
+                    # а конкретный файл и номер строки, где она упала.
+                    logger.exception("Произошел сбой при обработке запроса к Remnawave")
+            except Exception as e:
+                logger.error(f"Ошибка создания пользователя {e}")
+
+    elif order.vpn_type == "wireguard" and order.is_for_friend == True:
+        expires_at_fix = None
+        user.expires_at_wireguard = now + days_to_add
+        try:
+            wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=True)
+            try:
+                await session.commit()
+            except Exception as e:
+                logger.error(f"Ошибка добавления wg_id в базу данных")
+        except Exception as e:
+            logger.error(f"Ошибка создания пользователя в WG Easy: {e}")
+            error_details = traceback.format_exc()
+            print("Детали ошибки:")
+            print(error_details)
+            return False
         
         try:
             await session.commit()
