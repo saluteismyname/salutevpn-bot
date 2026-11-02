@@ -75,11 +75,11 @@ def get_buy_period_kb_wireguard() -> InlineKeyboardMarkup:
 
 def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
 
-    one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
-    one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
-    three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
-    six_months = f"6 месяцев - {prices.SUBSCRIPTION_PRICES['180_days']}₽"
-    twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
+    one_week = f"1 неделя - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['7_days'])}₽"
+    one_month = f"1 месяц - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['30_days'])}₽"
+    three_months = f"3 месяца - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['90_days'])}₽"
+    six_months = f"6 месяцев - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['180_days'])}₽"
+    twelve_months = f"12 месяцев - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['365_days'])}₽"
 
     kb = InlineKeyboardBuilder()
     kb.button(text=one_week, callback_data="buy_7_days_vless_for_friend")
@@ -94,11 +94,11 @@ def get_buy_for_friend_kb_vless() -> InlineKeyboardMarkup:
 
 def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
 
-    one_week = f"1 неделя - {prices.SUBSCRIPTION_PRICES['7_days']}₽"
-    one_month = f"1 месяц - {prices.SUBSCRIPTION_PRICES['30_days']}₽"
-    three_months = f"3 месяца - {prices.SUBSCRIPTION_PRICES['90_days']}₽"
-    six_months = f"6 месяцев - {prices.SUBSCRIPTION_PRICES['180_days']}₽"
-    twelve_months = f"12 месяцев - {prices.SUBSCRIPTION_PRICES['365_days']}₽"
+    one_week = f"1 неделя - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['7_days'])}₽"
+    one_month = f"1 месяц - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['30_days'])}₽"
+    three_months = f"3 месяца - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['90_days'])}₽"
+    six_months = f"6 месяцев - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['180_days'])}₽"
+    twelve_months = f"12 месяцев - {int(prices.SUBSCRIPTION_PRICES_FOR_FRIEND['365_days'])}₽"
 
     kb = InlineKeyboardBuilder()
     kb.button(text=one_week, callback_data="buy_7_days_wireguard_for_friend")
@@ -187,7 +187,12 @@ def get_payment_kb(days: int, vpn_type: str, payment: object, is_for_friend: boo
             url=payment["payment_without_bonuses_url"]
         )
 
-    kb.button(text="🔙 Назад", callback_data=f"buy_period_{vpn_type}")
+    if is_for_friend == True:
+        kb.button(text="🔙 Назад", callback_data=f"buy_for_friend_menu_{vpn_type}")
+    else:
+        kb.button(text="🔙 Назад", callback_data=f"buy_period_{vpn_type}")
+
+
     kb.adjust(1)
 
     return kb.as_markup()

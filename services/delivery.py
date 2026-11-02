@@ -65,17 +65,16 @@ async def process_vpn_delivery(
         # Создаем пользователя в Remnawave если его нет
         if not user.remnawave_uuid:
             try:
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends=user.num_of_friends)
-                
+                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends_vless=user.num_of_friends_vless)
                 if response:
                     user.remnawave_uuid = response["response"]["uuid"]
-                try:
-                    await session.commit()
-                except Exception as e:
-                    logger.error(f"Ошибка добавления uuid в базу данных")
+                    try:
+                        await session.commit()
+                    except Exception as e:
+                        logger.error(f"Ошибка добавления uuid в базу данных")
             except httpx.HTTPStatusError as e:
                 # Выведет точный текст ошибки от сервера Remnawave
-                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}")
             except Exception as e:
                 logger.exception(f"Общая ошибка:")
         else:
@@ -101,9 +100,9 @@ async def process_vpn_delivery(
             elif order.days == 90:
                 msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 180:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 6 месяцев\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
             elif order.days == 365:
-                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
 
             try:
                 await bot.send_message(
@@ -181,9 +180,9 @@ async def process_vpn_delivery(
             elif order.days == 90:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 180:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 6 месяцев\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 365:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 1 год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
 
             try:
                 await bot.send_document(
@@ -204,90 +203,67 @@ async def process_vpn_delivery(
 
         expires_at = now + relativedelta(days=order.days)
         expires_at = expires_at.isoformat()
-
-        try:
-            await session.commit()
-            logger.info(f"Подписка для пользователя {user.telegram_id} по заказу {payment_id} и типом VPN Vless успешно обновлена!")
-        except Exception as e:
-            await session.rollback()
-            logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
-            return False 
-        
         # Создаем пользователя в Remnawave или редактирование
-        if not user.remnawave_uuid and order.is_for_friend == False:
+        
+        expires_at_date = now + timedelta(days=order.days)
+        if isinstance(expires_at, datetime):
+            expires_at = str(expires_at.isoformat())
+        else:
+            expires_at = str(expires_at)
+        try:
+            user.num_of_friends_vless += 1
+            response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
+            order.remnawave_uuid = response["response"]["shortUuid"]
+            
+            moscow_time = expires_at_date + timedelta(hours=3)
+            readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
+            vless_subscription = response["response"]["subscriptionUrl"]
             try:
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=False, num_of_friends_vless=user.num_of_friends_vless)
-                if response:
-                    user.remnawave_uuid = response["response"]["uuid"]                
-                try:
-                    await session.commit()
-                except Exception as e:
-                    logger.error(f"Ошибка добавления uuid в базу данных")
-            except httpx.HTTPStatusError as e:
-                # Выведет точный текст ошибки от сервера Remnawave
-                logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
-            except Exception as e:
-                logger.exception(f"Общая ошибка:")
-        elif order.is_for_friend == True:
-            expires_at_date = now + timedelta(days=order.days)
-            if isinstance(expires_at, datetime):
-                expires_at = str(expires_at.isoformat())
-            else:
-                expires_at = str(expires_at)
-            try:
-                user.num_of_friends_vless += 1
-                response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
-                order.remnawave_uuid = response["response"]["shortUuid"]
                 await session.commit()
-                try:
-                    moscow_time = expires_at_date + timedelta(hours=3)
-                    readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
-                    vless_subscription = response["response"]["subscriptionUrl"]
-                        
-                    if order.days < 30:
-                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
-                    elif order.days == 30:
-                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
-                    elif order.days == 90:
-                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
-                    elif order.days == 180:
-                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
-                    elif order.days == 365:
-                        msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
-    
-                    try:
-                        await bot.send_message(
-                            chat_id=user.telegram_id,
-                            text=msg
-                        )
-                    except Exception as e:
-                        logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
-    
-                    return True
-                except httpx.HTTPStatusError as e:
-                    # Выведет точный текст ошибки от сервера Remnawave
-                    logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
-                except Exception as e:
-                    # Метод .exception запишет в логи не просто имя ошибки, 
-                    # а конкретный файл и номер строки, где она упала.
-                    logger.exception("Произошел сбой при обработке запроса к Remnawave")
+                logger.info(f"Подписка для пользователя {user.telegram_id} и его друга №{user.num_of_friends_vless} по заказу {payment_id} и типом VPN Vless успешно обновлена!")
             except Exception as e:
-                logger.error(f"Ошибка создания пользователя {e}")
+                await session.rollback()
+                logger.exception(f"Критическая ошибка базы данных при сохранении заказа {payment_id}: {e}")
+                return False 
+                
+            if order.days < 30:
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на {order.days} дней\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+            elif order.days == 30:
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 месяц\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+            elif order.days == 90:
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+            elif order.days == 180:
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 6 месяцев\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+            elif order.days == 365:
+                msg = f"✅ <b>Оплата прошла успешно!</b>\n\nВаша подписка на <b>Vless</b> продлена на 1 год\nДействует до: <b> {readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n<b>Vless-подписка:</b><pre>{vless_subscription}</pre>"
+
+            try:
+                await bot.send_message(
+                    chat_id=user.telegram_id,
+                    text=msg
+                )
+            except Exception as e:
+                logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
+
+            return True
+        except httpx.HTTPStatusError as e:
+            # Выведет точный текст ошибки от сервера Remnawave
+            logger.error(f"Код: {e.response.status_code}, Ответ: {e.response.text}") 
+        except Exception as e:
+            logger.exception(f"Ошибка создания пользователя {e}")
 
     elif order.vpn_type == "wireguard" and order.is_for_friend == True:
         expires_at_fix = None
         expires_at_wireguard = now + days_to_add
         user.num_of_friends_wireguard += 1
         num_of_friends_wireguard = user.num_of_friends_wireguard
-        session.commit()
         try:
             wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=True, num_of_friends_wireguard=num_of_friends_wireguard)
+            order.wg_id = wg_user
             try:
-                num_of_friends_wireguard += 1
-                order.wg_id = wg_user
                 await session.commit()
             except Exception as e:
-                logger.error(f"Ошибка добавления wg_id в базу данных")
+                logger.error(f"Ошибка добавления wg_id в базу данных при покупке для друга")
         except Exception as e:
             logger.error(f"Ошибка создания пользователя в WG Easy: {e}")
             error_details = traceback.format_exc()
@@ -299,7 +275,7 @@ async def process_vpn_delivery(
             
         # Отправляем сообщение пользователю
         try:
-            moscow_time = user.expires_at_wireguard + timedelta(hours=3)
+            moscow_time = order.created_at + relativedelta(days=order.days) + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
             config = await get_user_wg_easy(wg_id = order.wg_id)
@@ -315,9 +291,9 @@ async def process_vpn_delivery(
             elif order.days == 90:
                 msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 3 месяца\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 180:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на полгода\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 6 месяцев\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
             elif order.days == 365:
-                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
+                msg = f"✅ <b>Оплата прошла успешно! WG конфиг ☝️</b>\n\nВаша подписка на <b>WireGuard</b> продлена на 1 год\nДействует до: <b>{readable_date} (МСК)</b> 🚀\n\nСпасибо, что выбрали <b>SALUTE VPN!</b>\n\n"
 
             try:
                 await bot.send_document(
@@ -327,9 +303,9 @@ async def process_vpn_delivery(
                     parse_mode="HTML"
                 )
             except Exception as e:
-                logger.exception(f"Не удалось отправить уведомление об оплате: {e}")
+                logger.exception(f"Не удалось отправить уведомление об оплате при окупке для друга: {e}")
 
             return True
         except Exception as e:
-            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id}: {e}")
+            logger.warning(f"VPN выдан, но не удалось отправить сообщение пользователю {user.telegram_id} при покупке для друга: {e}")
             return False

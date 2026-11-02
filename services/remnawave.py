@@ -6,6 +6,7 @@ import httpx
 from random import randint
 import datetime
 import random
+from rich import print as rprint
 # Подгружаем переменные из .env
 load_dotenv()
 
@@ -15,12 +16,12 @@ remnawave_internal_squad = config.remnawave_internal_squad
 
 async def create_user_remnawave(expires_at: str, telegram_id: int, is_for_friend: bool, num_of_friends_vless: int) -> object:
     
-    if config.testing == True and is_for_friend == False:
+    if config.testing == "True" and is_for_friend == False:
         rand_num = random.randint(123456789, 987654321)
         username = f"test_{rand_num}_{telegram_id}"
-    elif config.testing == True and is_for_friend == True:
+    elif config.testing == "True" and is_for_friend == True:
         username = f"test_user_{telegram_id}_for_friend_{num_of_friends_vless}"
-    elif config.testing == False and is_for_friend == True:
+    elif config.testing == "False" and is_for_friend == True:
         username = f"user_{telegram_id}_for_friend_{num_of_friends_vless}"
     else: 
         username = f"user_{telegram_id}"
@@ -58,7 +59,6 @@ async def create_user_remnawave(expires_at: str, telegram_id: int, is_for_friend
         else:
             try:
                 response = await client.post(f"{remnawave_url}/api/users",
-                    
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f'Bearer {remnawave_token}'
@@ -77,7 +77,9 @@ async def create_user_remnawave(expires_at: str, telegram_id: int, is_for_friend
                 if response.status_code >= 400:
                     logger.error(f"Remnawave API вернул ошибку {response.status_code}!")
                     logger.error(f"Ответ сервера (Body): {response.text}")
-                
+
+                rprint('123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123', response.json())
+
                 return response.json()
             
             except httpx.HTTPStatusError as e:

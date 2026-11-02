@@ -289,12 +289,12 @@ async def callback_period_message(callback: CallbackQuery):
 
     if vpn_type == "vless":
         await callback.message.edit_text(
-            "Выберите срок подписки:",
+            "Выберите срок подписки Vless:",
             reply_markup=get_buy_period_kb_vless()
         )
     elif vpn_type == "wireguard":
         await callback.message.edit_text(
-            "Выберите срок подписки:",
+            "Выберите срок подписки WireGuard:",
             reply_markup=get_buy_period_kb_wireguard()
         )
     await callback.answer()
@@ -305,13 +305,13 @@ async def callback_period_message(callback: CallbackQuery):
 
     if vpn_type == "vless":
         await callback.message.edit_text(
-            "Выберите срок подписки для друга: \n" \
+            "Выберите срок подписки Vless для друга: \n" \
             "ℹ️ Если Вы хотите продлить имеющуюся подписку друга, нажмите \"Мои подписки\"",
             reply_markup=get_buy_for_friend_kb_vless()
         )
     elif vpn_type == "wireguard":
         await callback.message.edit_text(
-                "Выберите срок подписки для друга: \n" \
+                "Выберите срок подписки WireGuard для друга: \n" \
                 "ℹ️ Если Вы хотите продлить имеющуюся подписку друга, нажмите \"Мои подписки\"",
                 reply_markup=get_buy_for_friend_kb_wireguard()
             )
