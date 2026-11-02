@@ -201,6 +201,7 @@ def get_subscriptions_kb(orders: object):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
     buttons_count = 0
+    user_has_orders_for_friends = False
     
     for order, user in orders:
         vpn_info = {
