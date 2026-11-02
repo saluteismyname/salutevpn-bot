@@ -2,15 +2,14 @@ import asyncio
 from datetime import datetime, timezone
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-from keyboards.keyboards import format_days_second, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
+from keyboards.keyboards import back_button_to_my_subscriptions, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
 from aiohttp import web
 from keyboards import get_start_kb, get_instruction_kb, get_vless_instruction_kb, get_wireguard_instruction_kb, get_buy_period_kb_vless, get_buy_period_kb_wireguard
 from config import config
-from aiogram import Bot, Dispatcher
-from aiogram import F
+from aiogram import Bot, Dispatcher, Router, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -58,6 +57,9 @@ bot = Bot(
     )
 # Диспетчер
 dp = Dispatcher()
+
+# Роутер
+router = Router()
 
 DATABASE_URL = f"postgresql+asyncpg://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -160,7 +162,7 @@ async def instruction_message(message: Message):
     )
 
 @dp.message(F.text == "📋 Мои подписки")
-async def instruction_message(message: Message):
+async def subscriptions_message(message: Message):
 
     async with session_maker() as session:
         result = await session.execute(
@@ -186,6 +188,41 @@ async def instruction_message(message: Message):
         text=text,
         reply_markup=get_subscriptions_kb(orders)
     )
+
+@dp.callback_query(F.data.startswith("my_subscriptions_"))
+async def subscriptions_message(callback: CallbackQuery):
+
+    async with session_maker() as session:
+        result = await session.execute(
+            select(Order, User)
+            .join(User, Order.telegram_id == User.telegram_id).where(
+                Order.telegram_id == callback.from_user.id,
+                Order.is_for_friend == False,
+                Order.status == "paid"
+            ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
+            .distinct(Order.vpn_type)
+        )
+        orders = result.all()
+            
+    for order, user in orders:
+        print(order.vpn_type, user.expires_at_vless, user.expires_at_wireguard)
+
+    if orders:
+        text = "Выберите подписку: "
+    else:
+        text = "У Вас ещё нет активных подписок."
+
+    if callback.data.split("_")[-1] == "vless":
+        await callback.message.edit_text(
+            text=text,
+            reply_markup=get_subscriptions_kb(orders)
+        )
+    else:
+        await callback.message.delete()
+        await callback.message.answer(
+            text=text,
+            reply_markup=get_subscriptions_kb(orders)
+        )
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
 async def trial_types(message: Message):
@@ -262,17 +299,17 @@ async def activate_trial(callback: CallbackQuery):
         
     elif vpn_type == "wireguard":
     
-            if not user.is_trial_available_wireguard:
-                await callback.message.answer(
-                    "Вы уже использовали пробную подписку WireGuard."
-                )
-                
-                return
-            else:
+        if not user.is_trial_available_wireguard:
+            await callback.message.answer(
+                "Вы уже использовали пробную подписку WireGuard."
+            )
+            
+            return
+        else:
 
-                await process_trial_vpn_delivery(telegram_id=callback.from_user.id, vpn_type="wireguard", session=session, bot=bot)
-    
-                return
+            await process_trial_vpn_delivery(telegram_id=callback.from_user.id, vpn_type="wireguard", session=session, bot=bot)
+
+            return
 
 @dp.callback_query(F.data == "buy_type")
 async def callback_buy_type_vless(callback: CallbackQuery):
@@ -386,7 +423,8 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             "👥 Подключенных устройств: 1 из 5\n\n"
             "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
             f"<pre>{vless_key}</pre>",
-            parse_mode="HTML"
+            parse_mode="HTML",
+            reply_markup=back_button_to_my_subscriptions(vpn_type="vless")
         )
 
     else:
@@ -414,11 +452,14 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             "👥 Подключенных устройств: 1 из 5\n\n"\
             "💡 Скачайте конфиг выше ☝️ и вставьте в ваше приложение:\n"\
 
+        await callback.message.delete()
+        
         await callback.bot.send_document(
             chat_id=user.telegram_id,
             caption=msg,
             document=config_file,
-            parse_mode="HTML"
+            parse_mode="HTML",
+            reply_markup=back_button_to_my_subscriptions(vpn_type="wireguard")
         )
 
     await callback.answer()

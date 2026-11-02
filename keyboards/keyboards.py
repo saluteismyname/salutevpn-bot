@@ -111,7 +111,7 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     
     return kb.as_markup()
 
-def get_subscriptions_kb(telegram_id) -> InlineKeyboardMarkup:
+def get_type_subscriptions_kb(telegram_id) -> InlineKeyboardMarkup:
 
     kb = InlineKeyboardBuilder()
 
@@ -197,11 +197,21 @@ def get_payment_kb(days: int, vpn_type: str, payment: object, is_for_friend: boo
 
     return kb.as_markup()
 
+def back_button_to_my_subscriptions(vpn_type: str):
+    kb = InlineKeyboardBuilder()
+
+    kb.button(
+        text="🔙 Назад",
+        callback_data=f"my_subscriptions_{vpn_type}"
+    )
+
+    return kb.as_markup()
+
 def get_subscriptions_kb(orders: object):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
     buttons_count = 0
-    user_has_orders_for_friends = False
+    user_has_orders_for_friends = None
     
     for order, user in orders:
         vpn_info = {
@@ -243,7 +253,7 @@ def get_subscriptions_kb(orders: object):
         kb.adjust(2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
     else:
         kb.adjust(1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
-    
+
     return kb.as_markup()
 
 def format_days(n: int) -> str:
