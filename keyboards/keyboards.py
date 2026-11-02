@@ -227,13 +227,16 @@ def get_subscriptions_kb(orders: object):
             callback_data=f"select_order:_{order.id}"
         )
 
+        if user.num_of_friends_vless > 0 or user.num_of_friends_wireguard > 0:
+            user_has_orders_for_friends = True 
+
         buttons_count += 1
 
-
-    kb.button(
-                text='Подписки друзей 🔽',
-                callback_data='empty'
-            )
+    if user_has_orders_for_friends:
+        kb.button(
+            text='Подписки друзей 🔽',
+            callback_data='empty'
+        )
 
     if buttons_count > 1:
         kb.adjust(2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
