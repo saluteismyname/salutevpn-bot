@@ -100,17 +100,17 @@ async def yookassa_webhook_handler(request: web.Request) -> web.Response:
             if buyer:
                 # Списываем бонусы у покупателя, если они использовались
                 if order.bonuses_spent > 0:
-                    buyer.bonus_balance = max(0, buyer.bonus_balance - order.bonuses_spent)
+                    buyer.bonus_balance = max(0, int(buyer.bonus_balance - order.bonuses_spent))
 
                 # Начисляем 20% пригласителю (рефереру) от РЕАЛЬНО оплаченной суммы
                 if buyer.referrer_id:
                     referrer_id = buyer.referrer_id
                     try:
-                        actual_amount = float(order.amount_value)
+                        actual_amount = int(order.amount_value)
                         bonus_amount = round(actual_amount * 0.30, 2)
                     except (TypeError, ValueError) as e:
                         logger.error(f"Ошибка при конвертации суммы заказа {order.payment_id}: {e}")
-                        bonus_amount = 0.0
+                        bonus_amount = 0
 
                     # Находим реферера в БД
                     ref_query = select(User).where(User.telegram_id == referrer_id)
