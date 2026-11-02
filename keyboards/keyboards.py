@@ -207,25 +207,23 @@ def back_button_to_my_subscriptions(vpn_type: str):
 
     return kb.as_markup()
 
-def get_subscriptions_kb(orders: object):
+def get_subscriptions_kb(orders_with_friends: object, orders_without_friends: object):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
     buttons_count = 0
     user_has_orders_for_friends = None
     
-    for order, user in orders:
+    for order, user in orders_with_friends:
         vpn_info = {
             "vless": ("Vless", user.expires_at_vless),
             "wireguard": ("WireGuard", user.expires_at_wireguard)
         }
         
         pretty_name, expire_date = vpn_info.get(order.vpn_type)
-        pretty_date = (expire_date - now).days
-
+        
         if expire_date:
             remaining_days = (expire_date - now).days
             if remaining_days > 0:
-        
                 days_text = f"{format_days(remaining_days)}"
             else:
                 days_text = "Подписка истекла"
@@ -249,10 +247,33 @@ def get_subscriptions_kb(orders: object):
             callback_data='empty'
         )
 
+    for order, user in orders_with_friends:
+        vpn_info = {
+            "vless": "Vless",
+            "wireguard": "WireGuard"
+        }
+
+        pretty_name, expire_date = vpn_info.get(order.vpn_type)
+        
+        if expire_date:
+            remaining_days = (expire_date - now).days
+            if remaining_days > 0:
+                days_text = f"{format_days(remaining_days)}"
+            else:
+                days_text = "Подписка истекла"
+        else:
+            days_text = f"{format_days(order.days)}"
+
+        btn_text = f"📦 {pretty_name} | {days_text}"
+        kb.button(
+            text=btn_text,
+            callback_data=f"select_order:_{order.id}"
+        )
+
     if buttons_count > 1:
-        kb.adjust(2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+        kb.adjust(2, 1, 2)
     else:
-        kb.adjust(1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+        kb.adjust(1, 1, 2)
 
     return kb.as_markup()
 

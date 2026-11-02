@@ -165,7 +165,7 @@ async def instruction_message(message: Message):
 async def subscriptions_message(message: Message):
 
     async with session_maker() as session:
-        result = await session.execute(
+        result_without_friends = await session.execute(
             select(Order, User)
             .join(User, Order.telegram_id == User.telegram_id).where(
                 Order.telegram_id == message.from_user.id,
@@ -174,19 +174,26 @@ async def subscriptions_message(message: Message):
             ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
             .distinct(Order.vpn_type)
         )
-        orders = result.all()
-            
-    for order, user in orders:
-        print(order.vpn_type, user.expires_at_vless, user.expires_at_wireguard)
+        orders_without_friends = result_without_friends.all()
 
-    if orders:
+        result_with_friends = await session.execute(
+            select(Order, User)
+            .join(User, Order.telegram_id == User.telegram_id).where(
+                Order.telegram_id == message.from_user.id,
+                Order.is_for_friend == True,
+                Order.status == "paid"
+            ).order_by(Order.created_at.desc())
+        )
+        orders_with_friends = result_with_friends.all()
+
+    if orders_without_friends:
         text = "Выберите подписку: "
     else:
         text = "У Вас ещё нет активных подписок."
 
     await message.answer(
         text=text,
-        reply_markup=get_subscriptions_kb(orders)
+        reply_markup=get_subscriptions_kb(orders_without_friends, orders_with_friends)
     )
 
 @dp.callback_query(F.data.startswith("my_subscriptions_"))
