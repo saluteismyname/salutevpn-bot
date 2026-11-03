@@ -246,7 +246,7 @@ def get_subscriptions_kb(orders_with_friends: object | None, orders_without_frie
     if user_has_orders_for_friends:
                 kb.button(
                     text='Подписки друзей 🔽',
-                    callback_data='empty'
+                    callback_data='empty_for_back_button'
                 )
 
     if orders_with_friends:

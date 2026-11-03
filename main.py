@@ -526,5 +526,9 @@ async def callback_instruction_chosen(callback: CallbackQuery):
             )
     await callback.answer()
 
+@dp.callback_query(F.data == "empty_for_back_button")
+async def empty_for_back_button(callback: CallbackQuery):
+    await callback.answer()
+
 if __name__ == "__main__":
     main()
