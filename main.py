@@ -425,7 +425,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
         elif order.is_for_friend == True and order.vpn_type == "wireguard":
             is_for_friend = f" для друга №{user.num_of_friends_wireguard}"
         else:
-            is_for_friend = None
+            is_for_friend = ""
 
         if expires_at > now:
             is_active = "🟢 Активна\n"
@@ -456,7 +456,13 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             file=config.encode("utf-8"), 
             filename=f"Salute_VPN_{user.telegram_id}.conf"
         )
-
+        if order.is_for_friend == True and order.vpn_type == "vless":
+            is_for_friend = f" для друга №{user.num_of_friends_vless}"
+        elif order.is_for_friend == True and order.vpn_type == "wireguard":
+            is_for_friend = f" для друга №{user.num_of_friends_wireguard}"
+        else:
+            is_for_friend = ""
+        
         if expires_at > now:
             is_active = "🟢 Активна\n"
             lasts_to = "Действует до:"
@@ -464,7 +470,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             is_active = "🔴 Истекла\n"
             lasts_to = "Действовала до:"
 
-        msg = f"📱 Подписка: {vpn_name}\n"\
+        msg = f"📱 Подписка: {vpn_name}{is_for_friend}\n"\
             f"Статус: {is_active}\n"\
             f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"\
             f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"\
