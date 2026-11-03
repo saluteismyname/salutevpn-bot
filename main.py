@@ -171,7 +171,7 @@ async def subscriptions_message(message: Message):
                 Order.telegram_id == message.from_user.id,
                 Order.is_for_friend == False,
                 Order.status == "paid"
-            ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
+            ).order_by(Order.vpn_type, Order.created_at.asc())  # 1. Сначала сортируем по протоколу и дате (от старым к новым)
             .distinct(Order.vpn_type)
         )
         orders_without_friends = result_without_friends.all()
@@ -182,7 +182,7 @@ async def subscriptions_message(message: Message):
                 Order.telegram_id == message.from_user.id,
                 Order.is_for_friend == True,
                 Order.status == "paid"
-            ).order_by(Order.created_at.desc())
+            ).order_by(Order.created_at.asc(), Order.id.asc())
         )
         orders_with_friends = result_with_friends.all()
 
@@ -206,7 +206,7 @@ async def subscriptions_message_from_menu(callback: CallbackQuery):
                 Order.telegram_id == callback.from_user.id,
                 Order.is_for_friend == False,
                 Order.status == "paid"
-            ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
+            ).order_by(Order.vpn_type, Order.created_at.asc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
             .distinct(Order.vpn_type)
         )
         orders_without_friends = result_without_friends.all()
@@ -217,7 +217,7 @@ async def subscriptions_message_from_menu(callback: CallbackQuery):
                 Order.telegram_id == callback.from_user.id,
                 Order.is_for_friend == True,
                 Order.status == "paid"
-            ).order_by(Order.created_at.desc())
+            ).order_by(Order.id.asc(), Order.created_at.asc())
         )
         orders_with_friends = result_with_friends.all()
             
@@ -374,8 +374,9 @@ async def callback_buy_7_days(callback: CallbackQuery):
     days = int(callback.data.split("_")[1])
     vpn_type = str(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
+    price_for_friend = prices.SUBSCRIPTION_PRICES_FOR_FRIEND[f"{days}_days"]
     parts = callback.data.split("_")
-    for_friend = parts[4] if len(parts) > 4 else False
+    for_friend = parts[4] if len(parts) >= 4 else False
 
     if for_friend == "for":
         payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=True)
@@ -383,7 +384,7 @@ async def callback_buy_7_days(callback: CallbackQuery):
         await callback.answer()
     
         await callback.message.edit_text(
-            f"Оплатите счёт на сумму {price}₽",
+            f"Оплатите счёт на сумму {price_for_friend}₽",
             reply_markup=kb
         )
     else:
@@ -419,7 +420,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
         vless_get = await get_user_remnawave(user.remnawave_uuid)
         vless_key = vless_get['response']['subscriptionUrl']
         vpn_name = "Vless"
-
+        
         if order.is_for_friend == True and order.vpn_type == "vless":
             is_for_friend = f" для друга №{user.num_of_friends_vless}"
         elif order.is_for_friend == True and order.vpn_type == "wireguard":
@@ -504,26 +505,26 @@ async def callback_instruction_chosen(callback: CallbackQuery):
         )
     else:
         await callback.message.edit_text(
-                "1. Скачайте WireGuard и убедитесь, что подключение по конфигу есть\n"
-                "2. Проверьте интернет-соединение\n"
-                "3. Если подключение есть, но интернет не работает - дело в провайдере, на стороне конфига всё хорошо\n"
-                "4. Любым текстовым редактором откройте конфиг, и после DNS = 1.1.1.1,8.8.8.8 вставьте следующие значения:\n"
-        
-                "<pre>MTU = 1380\n"
-                "Jc = 5\n"
-                "Jmin = 2\n"
-                "Jmax = 9\n"
-                "S1 = 0\n"
-                "S2 = 0\n"
-                "H1 = 1\n"
-                "H2 = 2\n"
-                "H3 = 3\n"
-                "H4 = 4</pre>\n"
-        
-                "5. Импортируйте этот конфиг в AmneziaWG (IOS, Android, Windows, Ubuntu)\n"
-                "6. Теперь можете наслаждаться интернетом!👐\n",
-                reply_markup=get_wireguard_instruction_kb()
-            )
+            "1. Скачайте WireGuard и убедитесь, что подключение по конфигу есть\n"
+            "2. Проверьте интернет-соединение\n"
+            "3. Если подключение есть, но интернет не работает - дело в провайдере, на стороне конфига всё хорошо\n"
+            "4. Любым текстовым редактором откройте конфиг, и после DNS = 1.1.1.1,8.8.8.8 вставьте следующие значения:\n"
+
+            "<pre>MTU = 1380\n"
+            "Jc = 5\n"
+            "Jmin = 2\n"
+            "Jmax = 9\n"
+            "S1 = 0\n"
+            "S2 = 0\n"
+            "H1 = 1\n"
+            "H2 = 2\n"
+            "H3 = 3\n"
+            "H4 = 4</pre>\n"
+
+            "5. Импортируйте этот конфиг в AmneziaWG (IOS, Android, Windows, Ubuntu)\n"
+            "6. Теперь можете наслаждаться интернетом!👐\n",
+            reply_markup=get_wireguard_instruction_kb()
+        )
     await callback.answer()
 
 @dp.callback_query(F.data == "empty_for_back_button")

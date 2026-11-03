@@ -8,9 +8,10 @@ async def get_subscription(order_id: int, session: AsyncSession):
     result = await session.execute(
         select(Order, User)
         .join(User, Order.telegram_id == User.telegram_id)
-        .order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
+        .order_by(Order.vpn_type, Order.created_at.asc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
         .distinct(Order.vpn_type)
         .where(Order.id == order_id)
+        .order_by(Order.id.asc(), Order.created_at.asc())
     )
 
     order = result.first()

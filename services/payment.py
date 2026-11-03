@@ -7,8 +7,11 @@ from payments.payments import create_payment
 
 async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_friend: bool):
    
-    base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
-        
+    if is_for_friend == True or is_for_friend == "True":
+        base_price = prices.SUBSCRIPTION_PRICES_FOR_FRIEND[f"{days}_days"]
+    else:
+        base_price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
+
     async with session_maker() as session:        
 
         user_query = select(User).where(User.telegram_id == telegram_id)

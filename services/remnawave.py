@@ -78,8 +78,6 @@ async def create_user_remnawave(expires_at: str, telegram_id: int, is_for_friend
                     logger.error(f"Remnawave API вернул ошибку {response.status_code}!")
                     logger.error(f"Ответ сервера (Body): {response.text}")
 
-                rprint('123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123', response.json())
-
                 return response.json()
             
             except httpx.HTTPStatusError as e:

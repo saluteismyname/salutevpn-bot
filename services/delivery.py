@@ -213,7 +213,7 @@ async def process_vpn_delivery(
         try:
             user.num_of_friends_vless += 1
             response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
-            order.remnawave_uuid = response["response"]["shortUuid"]
+            order.remnawave_uuid = response["response"]["uuid"]
             
             moscow_time = expires_at_date + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")

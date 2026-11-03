@@ -6,6 +6,7 @@ from database.models import User
 import payments.prices as prices
 from database.engine import session_maker
 from sqlalchemy import select
+from dateutil.relativedelta import relativedelta
 
 def get_start_kb() -> ReplyKeyboardMarkup:
     
@@ -258,11 +259,15 @@ def get_subscriptions_kb(orders_with_friends: object | None, orders_without_frie
             }
 
             pretty_name = vpn_info.get(order.vpn_type)
+            now = datetime.now(timezone.utc)
+            expire_date = order.created_at + relativedelta(days=order.days)
             
-            if expire_date:
-                remaining_days = (expire_date - now).days
-                if remaining_days > 0:
-                    days_text = f"{format_days(remaining_days)}"
+            if order.days:
+                remaining_days = expire_date - now
+                if remaining_days.days > 0:
+                    days_text = f"{format_days(remaining_days.days)}"
+                elif remaining_days.hours > 0:
+                    days_text = f"{format_hours(remaining_days.hours)}"
                 else:
                     days_text = "Подписка истекла"
             else:
@@ -288,3 +293,11 @@ def format_days(n: int) -> str:
         return f"{n} дня"
     else:
         return f"{n} дней"
+
+def format_hours(n: int) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return f"{n} час"
+    elif 2 <= n % 10 <= 4 and (n % 100 < 10 or n % 100 >= 20):
+        return f"{n} часа"
+    else:
+        return f"{n} часов"
