@@ -186,21 +186,21 @@ async def subscriptions_message(message: Message):
         )
         orders_with_friends = result_with_friends.all()
 
-    if orders_without_friends:
+    if orders_without_friends or orders_with_friends:
         text = "Выберите подписку: "
     else:
         text = "У Вас ещё нет активных подписок."
 
     await message.answer(
         text=text,
-        reply_markup=get_subscriptions_kb(orders_without_friends, orders_with_friends)
+        reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
     )
 
 @dp.callback_query(F.data.startswith("my_subscriptions_"))
-async def subscriptions_message(callback: CallbackQuery):
+async def subscriptions_message_from_menu(callback: CallbackQuery):
 
     async with session_maker() as session:
-        result = await session.execute(
+        result_without_friends = await session.execute(
             select(Order, User)
             .join(User, Order.telegram_id == User.telegram_id).where(
                 Order.telegram_id == callback.from_user.id,
@@ -209,12 +209,19 @@ async def subscriptions_message(callback: CallbackQuery):
             ).order_by(Order.vpn_type, Order.created_at.desc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
             .distinct(Order.vpn_type)
         )
-        orders = result.all()
-            
-    for order, user in orders:
-        print(order.vpn_type, user.expires_at_vless, user.expires_at_wireguard)
+        orders_without_friends = result_without_friends.all()
 
-    if orders:
+        result_with_friends = await session.execute(
+            select(Order, User)
+            .join(User, Order.telegram_id == User.telegram_id).where(
+                Order.telegram_id == callback.from_user.id,
+                Order.is_for_friend == True,
+                Order.status == "paid"
+            ).order_by(Order.created_at.desc())
+        )
+        orders_with_friends = result_with_friends.all()
+            
+    if orders_without_friends or orders_with_friends:
         text = "Выберите подписку: "
     else:
         text = "У Вас ещё нет активных подписок."
@@ -222,13 +229,13 @@ async def subscriptions_message(callback: CallbackQuery):
     if callback.data.split("_")[-1] == "vless":
         await callback.message.edit_text(
             text=text,
-            reply_markup=get_subscriptions_kb(orders)
+            reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
         )
     else:
         await callback.message.delete()
         await callback.message.answer(
             text=text,
-            reply_markup=get_subscriptions_kb(orders)
+            reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
         )
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
@@ -413,6 +420,13 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
         vless_key = vless_get['response']['subscriptionUrl']
         vpn_name = "Vless"
 
+        if order.is_for_friend == True and order.vpn_type == "vless":
+            is_for_friend = f" для друга №{user.num_of_friends_vless}"
+        elif order.is_for_friend == True and order.vpn_type == "wireguard":
+            is_for_friend = f" для друга №{user.num_of_friends_wireguard}"
+        else:
+            is_for_friend = None
+
         if expires_at > now:
             is_active = "🟢 Активна\n"
             lasts_to = "Действует до:"
@@ -421,7 +435,7 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             lasts_to = "Действовала до:"
 
         await callback.message.edit_text(
-            f"📱 Подписка: {vpn_name}\n"
+            f"📱 Подписка: {vpn_name}{is_for_friend}\n"
             f"Статус: {is_active}\n"
             f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"
             f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"

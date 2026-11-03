@@ -111,7 +111,7 @@ def get_buy_for_friend_kb_wireguard() -> InlineKeyboardMarkup:
     
     return kb.as_markup()
 
-def get_type_subscriptions_kb(telegram_id) -> InlineKeyboardMarkup:
+def get_type_subscriptions_kb() -> InlineKeyboardMarkup:
 
     kb = InlineKeyboardBuilder()
 
@@ -207,68 +207,72 @@ def back_button_to_my_subscriptions(vpn_type: str):
 
     return kb.as_markup()
 
-def get_subscriptions_kb(orders_with_friends: object, orders_without_friends: object):
+def get_subscriptions_kb(orders_with_friends: object | None, orders_without_friends: object | None):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
     buttons_count = 0
     user_has_orders_for_friends = None
+
+    if orders_without_friends:
     
-    for order, user in orders_with_friends:
-        vpn_info = {
-            "vless": ("Vless", user.expires_at_vless),
-            "wireguard": ("WireGuard", user.expires_at_wireguard)
-        }
-        
-        pretty_name, expire_date = vpn_info.get(order.vpn_type)
-        
-        if expire_date:
-            remaining_days = (expire_date - now).days
-            if remaining_days > 0:
-                days_text = f"{format_days(remaining_days)}"
+        for order, user in orders_without_friends:
+            vpn_info = {
+                "vless": ("Vless", user.expires_at_vless),
+                "wireguard": ("WireGuard", user.expires_at_wireguard)
+            }
+            
+            pretty_name, expire_date = vpn_info.get(order.vpn_type)
+            
+            if expire_date:
+                remaining_days = (expire_date - now).days
+                if remaining_days > 0:
+                    days_text = f"{format_days(remaining_days)}"
+                else:
+                    days_text = "Подписка истекла"
             else:
-                days_text = "Подписка истекла"
-        else:
-            days_text = f"{format_days(order.days)}"
+                days_text = f"{format_days(order.days)}"
 
-        btn_text = f"📦 {pretty_name} | {days_text}"
-        kb.button(
-            text=btn_text,
-            callback_data=f"select_order:_{order.id}"
-        )
+            btn_text = f"📦 {pretty_name} | {days_text}"
+            kb.button(
+                text=btn_text,
+                callback_data=f"select_order:_{order.id}"
+            )
 
-        if user.num_of_friends_vless > 0 or user.num_of_friends_wireguard > 0:
-            user_has_orders_for_friends = True 
+            if user.num_of_friends_vless > 0 or user.num_of_friends_wireguard > 0:
+                user_has_orders_for_friends = True 
 
-        buttons_count += 1
+            buttons_count += 1
 
     if user_has_orders_for_friends:
-        kb.button(
-            text='Подписки друзей 🔽',
-            callback_data='empty'
-        )
+                kb.button(
+                    text='Подписки друзей 🔽',
+                    callback_data='empty'
+                )
 
-    for order, user in orders_with_friends:
-        vpn_info = {
-            "vless": "Vless",
-            "wireguard": "WireGuard"
-        }
+    if orders_with_friends:
 
-        pretty_name, expire_date = vpn_info.get(order.vpn_type)
-        
-        if expire_date:
-            remaining_days = (expire_date - now).days
-            if remaining_days > 0:
-                days_text = f"{format_days(remaining_days)}"
+        for order, user in orders_with_friends:
+            vpn_info = {
+                "vless": "Vless",
+                "wireguard": "WireGuard"
+            }
+
+            pretty_name = vpn_info.get(order.vpn_type)
+            
+            if expire_date:
+                remaining_days = (expire_date - now).days
+                if remaining_days > 0:
+                    days_text = f"{format_days(remaining_days)}"
+                else:
+                    days_text = "Подписка истекла"
             else:
-                days_text = "Подписка истекла"
-        else:
-            days_text = f"{format_days(order.days)}"
+                days_text = f"{format_days(order.days)}"
 
-        btn_text = f"📦 {pretty_name} | {days_text}"
-        kb.button(
-            text=btn_text,
-            callback_data=f"select_order:_{order.id}"
-        )
+            btn_text = f"📦 {pretty_name} | {days_text}"
+            kb.button(
+                text=btn_text,
+                callback_data=f"select_order:_{order.id}"
+            )
 
     if buttons_count > 1:
         kb.adjust(2, 1, 2)
@@ -284,11 +288,3 @@ def format_days(n: int) -> str:
         return f"{n} дня"
     else:
         return f"{n} дней"
-
-def format_days_second(n: int) -> str:
-    if n % 10 == 1 and n % 100 != 11:
-        return f"Остался {n} день"
-    elif 2 <= n % 10 <= 4 and (n % 100 < 10 or n % 100 >= 20):
-        return f"Осталось {n} дня"
-    else:
-        return f"Осталось {n} дней"

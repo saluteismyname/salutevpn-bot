@@ -78,6 +78,7 @@ class Order(Base):
     bonuses_spent: Mapped[int] = mapped_column(Integer, default=0)
 
     expires_at_vless: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at_wireguard: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 class PurchasedKey(Base):
     __tablename__ = "purchased_keys"
