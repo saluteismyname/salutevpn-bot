@@ -24,6 +24,7 @@ from sqlalchemy import desc, select, insert, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
+from services.buy import buy_days
 from services.payment import get_payment_data
 from services.remnawave import get_user_remnawave
 from services.trial_delivery import process_trial_vpn_delivery
@@ -379,26 +380,10 @@ async def callback_buy_days(callback: CallbackQuery):
     for_friend = parts[4] if len(parts) > 4 else False
     friend_number = 0
     order = None
-    
-    async with session_maker() as session:
 
-        result = await session.execute(
-            select(User)
-            .where(User.telegram_id == callback.from_user.id)
-        )
-
-        user_check = result.scalar_one_or_none()
-
-        result_not_first = await session.execute(
-            select(Order)
-            .where(Order.telegram_id == callback.from_user.id) #, Order.vpn_type == vpn_type
-            .order_by(
-                desc(Order.id)
-            )
-            .limit(1)
-        )
-    
-        order = result_not_first.scalar_one_or_none()
+    holder = await buy_days(telegram_id=telegram_id)
+    user_check = holder["user_check"]
+    order = holder["order"]
 
     if for_friend == "for":
 
@@ -415,13 +400,11 @@ async def callback_buy_days(callback: CallbackQuery):
                 else:
                     friend_number = user_check.num_of_friends_wireguard + 1
         else:
-            print("555555555555555555555555555555555555555555555555555555555555555555")
             await callback.message.edit_text("Вы не можете купить подписку для друга не имея своей.")
             return
         
         payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=True, friend_number=friend_number)
         kb = get_payment_kb(days=days, vpn_type=vpn_type, payment=payment, is_for_friend=True)
-        await callback.answer()
     
         await callback.message.edit_text(
             f"Оплатите счёт на сумму {price_for_friend}₽",
