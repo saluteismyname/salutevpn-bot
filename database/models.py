@@ -45,6 +45,8 @@ class User(Base):
         onupdate=func.now()
     )   
 
+    is_first_time: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=True)
+
     orders: Mapped[list[Order]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 class Order(Base):
@@ -77,8 +79,7 @@ class Order(Base):
 
     bonuses_spent: Mapped[int] = mapped_column(Integer, default=0)
 
-    expires_at_vless: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    expires_at_wireguard: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    friend_number: Mapped[int] = mapped_column(Integer, nullable=True, default=0, server_default="0")
 
 class PurchasedKey(Base):
     __tablename__ = "purchased_keys"

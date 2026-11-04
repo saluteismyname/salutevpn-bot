@@ -20,7 +20,7 @@ from aiogram.filters.callback_data import CallbackData
 from services import referral_system
 from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotification
 from dotenv import load_dotenv
-from sqlalchemy import select, insert, update
+from sqlalchemy import desc, select, insert, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
@@ -369,17 +369,57 @@ async def callback_period_message(callback: CallbackQuery):
     await callback.answer()
 
 @dp.callback_query(F.data.startswith("buy_"))
-async def callback_buy_7_days(callback: CallbackQuery):
+async def callback_buy_days(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     days = int(callback.data.split("_")[1])
     vpn_type = str(callback.data.split("_")[3])
     price = prices.SUBSCRIPTION_PRICES[f"{days}_days"]
     price_for_friend = prices.SUBSCRIPTION_PRICES_FOR_FRIEND[f"{days}_days"]
     parts = callback.data.split("_")
-    for_friend = parts[4] if len(parts) >= 4 else False
+    for_friend = parts[4] if len(parts) > 4 else False
+    friend_number = 0
+    order = None
+    
+    async with session_maker() as session:
+
+        result = await session.execute(
+            select(User)
+            .where(User.telegram_id == callback.from_user.id)
+        )
+
+        user_check = result.scalar_one_or_none()
+
+        result_not_first = await session.execute(
+            select(Order)
+            .where(Order.telegram_id == callback.from_user.id) #, Order.vpn_type == vpn_type
+            .order_by(
+                desc(Order.id)
+            )
+            .limit(1)
+        )
+    
+        order = result_not_first.scalar_one_or_none()
 
     if for_friend == "for":
-        payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=True)
+
+        if user_check.is_active_vpn is not False:
+            if order.vpn_type == "vless" and for_friend == "for":
+                if user_check.num_of_friends_vless is None:
+                    friend_number += 1
+                else:
+                    friend_number = user_check.num_of_friends_vless + 1
+
+            if order.vpn_type == "wireguard" and for_friend == "for":
+                if user_check.num_of_friends_wireguard is None:
+                    friend_number += 1
+                else:
+                    friend_number = user_check.num_of_friends_wireguard + 1
+        else:
+            print("555555555555555555555555555555555555555555555555555555555555555555")
+            await callback.message.edit_text("Вы не можете купить подписку для друга не имея своей.")
+            return
+        
+        payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=True, friend_number=friend_number)
         kb = get_payment_kb(days=days, vpn_type=vpn_type, payment=payment, is_for_friend=True)
         await callback.answer()
     
@@ -388,14 +428,13 @@ async def callback_buy_7_days(callback: CallbackQuery):
             reply_markup=kb
         )
     else:
-        payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=False)
+        payment = await get_payment_data(telegram_id=telegram_id, days=days, vpn_type=vpn_type, is_for_friend=False, friend_number=None)
         kb = get_payment_kb(days=days, vpn_type=vpn_type, payment=payment, is_for_friend=False)
         await callback.message.edit_text(
             f"Оплатите счёт на сумму {price}₽",
             reply_markup=kb
         )
 
-    
     await callback.answer()
 
 @dp.callback_query(F.data.startswith("pay_full_bonuses_"))
@@ -420,11 +459,12 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
         vless_get = await get_user_remnawave(user.remnawave_uuid)
         vless_key = vless_get['response']['subscriptionUrl']
         vpn_name = "Vless"
+        num_of_friend = order.friend_number
         
         if order.is_for_friend == True and order.vpn_type == "vless":
-            is_for_friend = f" для друга №{user.num_of_friends_vless}"
+            is_for_friend = f" для друга №{num_of_friend}"
         elif order.is_for_friend == True and order.vpn_type == "wireguard":
-            is_for_friend = f" для друга №{user.num_of_friends_wireguard}"
+            is_for_friend = f" для друга №{num_of_friend}"
         else:
             is_for_friend = ""
 
@@ -457,10 +497,13 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             file=config.encode("utf-8"), 
             filename=f"Salute_VPN_{user.telegram_id}.conf"
         )
+
+        num_of_friend = order.friend_number
+
         if order.is_for_friend == True and order.vpn_type == "vless":
-            is_for_friend = f" для друга №{user.num_of_friends_vless}"
+            is_for_friend = f" для друга №{num_of_friend}"
         elif order.is_for_friend == True and order.vpn_type == "wireguard":
-            is_for_friend = f" для друга №{user.num_of_friends_wireguard}"
+            is_for_friend = f" для друга №{num_of_friend}"
         else:
             is_for_friend = ""
         

@@ -52,6 +52,7 @@ async def process_vpn_delivery(
             user.expires_at_vless += days_to_add
 
         user.is_active_vpn = True
+        user.is_first_time = False
 
         try:
             await session.commit()
@@ -125,9 +126,11 @@ async def process_vpn_delivery(
         if not user.wg_id: 
             expires_at_fix = None
             user.expires_at_wireguard = now + days_to_add
+
             try:
                 wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None)
                 user.wg_id = wg_user
+                user.is_first_time = False
                 try:
                     await session.commit()
                 except Exception as e:
@@ -212,6 +215,7 @@ async def process_vpn_delivery(
             expires_at = str(expires_at)
         try:
             user.num_of_friends_vless += 1
+            order.friend_number_vless = user.num_of_friends_vless
             response = await create_user_remnawave(expires_at=expires_at, telegram_id=user.telegram_id, is_for_friend=True, num_of_friends_vless=user.num_of_friends_vless)
             order.remnawave_uuid = response["response"]["uuid"]
             
@@ -256,6 +260,7 @@ async def process_vpn_delivery(
         expires_at_fix = None
         expires_at_wireguard = now + days_to_add
         user.num_of_friends_wireguard += 1
+        order.friend_number_vless = user.num_of_friends_vless
         num_of_friends_wireguard = user.num_of_friends_wireguard
         try:
             wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=True, num_of_friends_wireguard=num_of_friends_wireguard)

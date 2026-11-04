@@ -5,7 +5,7 @@ from yookassa import Payment
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Order
 
-async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn_type: str, amount_value: int, bonuses_spent: int, is_for_friend: bool, remnawave_uuid: str, wg_id: str):
+async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn_type: str, amount_value: int, bonuses_spent: int, is_for_friend: bool, friend_number: int | None, remnawave_uuid: str, wg_id: str):
 
     new_order = Order(
         telegram_id=telegram_id,
@@ -15,6 +15,7 @@ async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn
         status="pending",
         bonuses_spent=bonuses_spent,
         is_for_friend=is_for_friend,
+        friend_number=friend_number,
         remnawave_uuid=remnawave_uuid,
         wg_id=wg_id
     )
@@ -42,7 +43,8 @@ async def create_payment(session: AsyncSession, telegram_id: int, days: int, vpn
             "order_id": str(f"{new_order.id}"),
             "is_for_friend": str(f"{is_for_friend}"),
             "remnawave_uuid": str(f"{remnawave_uuid}"),
-            "wg_id": str(f"{wg_id}")
+            "wg_id": str(f"{wg_id}"),
+            "": str(friend_number)
         }
     }, uuid.uuid4())
     
