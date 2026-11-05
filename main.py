@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timezone
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-from keyboards.keyboards import back_button_to_my_subscriptions, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
+from keyboards.keyboards import back_button_to_my_subscriptions, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_paginated_subscriptions_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -36,7 +36,8 @@ from aiogram.utils.deep_linking import create_start_link
 from database.engine import session_maker
 from services.referral_system import referral_system_payment, referral_system_registration
 from rich import print as rprint
-from services.get_subscription import get_subscription
+from services.get_subscription import get_my_subscriptions, get_subscription
+from dateutil.relativedelta import relativedelta
 
 logging.basicConfig(
     level=logging.INFO,  # С какого уровня показывать сообщения (INFO и выше)
@@ -164,28 +165,8 @@ async def instruction_message(message: Message):
 
 @dp.message(F.text == "📋 Мои подписки")
 async def subscriptions_message(message: Message):
-
-    async with session_maker() as session:
-        result_without_friends = await session.execute(
-            select(Order, User)
-            .join(User, Order.telegram_id == User.telegram_id).where(
-                Order.telegram_id == message.from_user.id,
-                Order.is_for_friend == False,
-                Order.status == "paid"
-            ).order_by(Order.vpn_type, Order.created_at.asc())  # 1. Сначала сортируем по протоколу и дате (от старым к новым)
-            .distinct(Order.vpn_type)
-        )
-        orders_without_friends = result_without_friends.all()
-
-        result_with_friends = await session.execute(
-            select(Order, User)
-            .join(User, Order.telegram_id == User.telegram_id).where(
-                Order.telegram_id == message.from_user.id,
-                Order.is_for_friend == True,
-                Order.status == "paid"
-            ).order_by(Order.created_at.asc(), Order.id.asc())
-        )
-        orders_with_friends = result_with_friends.all()
+    telegram_id = message.from_user.id
+    orders_without_friends, orders_with_friends = await get_my_subscriptions(telegram_id=telegram_id)
 
     if orders_without_friends or orders_with_friends:
         text = "Выберите подписку: "
@@ -194,50 +175,159 @@ async def subscriptions_message(message: Message):
 
     await message.answer(
         text=text,
-        reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
+        reply_markup=get_subscriptions_kb(
+            orders_with_friends=orders_with_friends, 
+            orders_without_friends=orders_without_friends,
+            page=1
+        )
     )
 
-@dp.callback_query(F.data.startswith("my_subscriptions_"))
-async def subscriptions_message_from_menu(callback: CallbackQuery):
+@dp.callback_query(F.data.startswith("friends_subs_page_"))
+async def process_friends_subs_pagination(callback: CallbackQuery):
+    # Пример callback_data: "friends_subs_page_2"
+    # Разбиваем по подчеркиванию и берем последний элемент (номер страницы)
+    page = int(callback.data.split("_")[-1])
+    vpn_type = str(callback.data.split("_")[-2])
 
-    async with session_maker() as session:
-        result_without_friends = await session.execute(
-            select(Order, User)
-            .join(User, Order.telegram_id == User.telegram_id).where(
-                Order.telegram_id == callback.from_user.id,
-                Order.is_for_friend == False,
-                Order.status == "paid"
-            ).order_by(Order.vpn_type, Order.created_at.asc())  # 1. Сначала сортируем по протоколу и дате (от новых к старым)
-            .distinct(Order.vpn_type)
-        )
-        orders_without_friends = result_without_friends.all()
+    telegram_id = callback.from_user.id
+    
+    # Получаем актуальные данные подписок из базы
+    orders_without_friends, orders_with_friends = await get_my_subscriptions(telegram_id=telegram_id)
 
-        result_with_friends = await session.execute(
-            select(Order, User)
-            .join(User, Order.telegram_id == User.telegram_id).where(
-                Order.telegram_id == callback.from_user.id,
-                Order.is_for_friend == True,
-                Order.status == "paid"
-            ).order_by(Order.id.asc(), Order.created_at.asc())
-        )
-        orders_with_friends = result_with_friends.all()
-            
-    if orders_without_friends or orders_with_friends:
-        text = "Выберите подписку: "
-    else:
-        text = "У Вас ещё нет активных подписок."
+    # Генерируем клавиатуру для новой страницы
+    kb = get_subscriptions_kb(
+        orders_with_friends=orders_with_friends, 
+        orders_without_friends=orders_without_friends,
+        page=page
+    )
 
-    if callback.data.split("_")[-1] == "vless":
-        await callback.message.edit_text(
-            text=text,
-            reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
-        )
-    else:
+    if vpn_type == "wireguard":
         await callback.message.delete()
+    # Обновляем клавиатуру в сообщении
         await callback.message.answer(
-            text=text,
-            reply_markup=get_subscriptions_kb(orders_without_friends=orders_without_friends, orders_with_friends=orders_with_friends)
+            text="Выберите подписку:",
+            reply_markup=kb
+            )
+    else:
+        await callback.message.edit_text(
+            text="Выберите подписку: ",
+            reply_markup=kb
         )
+    
+    # Обязательно гасим анимацию загрузки на кнопке
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("sub_page_"))
+async def process_sub_pagination(callback: CallbackQuery):
+    # Парсим: sub_page_<page>_<vpn_type>_<for_friend_flag>
+    parts = callback.data.split("_")
+    page = int(parts[2])
+    vpn_type = parts[3]
+    for_friend = bool(int(parts[4]))
+    
+    # Передаем ваш словарь цен
+    kb = get_paginated_subscriptions_kb(
+        prices_dict=prices.SUBSCRIPTION_PRICES, # или SUBSCRIPTION_PRICES_FOR_FRIEND, если нужно
+        page=page,
+        per_page=2, # Количество тарифов на одной странице
+        vpn_type=vpn_type,
+        for_friend=for_friend
+    )
+    
+    await callback.message.edit_text(
+        text="Выберите подписку: ",
+        reply_markup=kb
+        )
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("select_order:_"))
+async def select_order(callback: CallbackQuery, session: AsyncSession):
+
+    subscription = await get_subscription(int(callback.data.split("_")[2]), session)
+    now = datetime.now(timezone.utc)
+    order, user = subscription
+    page = callback.data.split("_")[3]
+
+    if order.vpn_type == "vless":
+        expires_at = user.expires_at_vless if user.expires_at_vless else "Бессрочно"
+        vless_get = await get_user_remnawave(user.remnawave_uuid)
+        vless_key = vless_get['response']['subscriptionUrl']
+        vpn_name = "Vless"
+        num_of_friend = order.friend_number
+        
+        if order.is_for_friend == True:
+            is_for_friend = f" для друга №{num_of_friend}"
+            expires_at = order.created_at + relativedelta(days=order.days)
+            vless_get = await get_user_remnawave(order.remnawave_uuid)
+            vless_key = vless_get["response"]["subscriptionUrl"]
+        else:
+            is_for_friend = ""
+
+        if expires_at > now:
+            is_active = "🟢 Активна\n"
+            lasts_to = "Действует до:"
+        else:
+            is_active = "🔴 Истекла\n"
+            lasts_to = "Действовала до:"
+
+        await callback.message.edit_text(
+            f"📱 Подписка {vpn_name}{is_for_friend}\n"
+            f"Статус: {is_active}{page}\n"
+            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"
+            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"
+            "───────────────────\n"
+            "⚡ Скорость: До 1 Gbps (без ограничений)\n"
+            "👥 Подключенных устройств: 1 из 5\n\n"
+            "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
+            f"<pre>{vless_key}</pre>",
+            parse_mode="HTML",
+            reply_markup=back_button_to_my_subscriptions(vpn_type="vless", page=page)
+        )
+
+    else:
+        expires_at = user.expires_at_wireguard if user.expires_at_wireguard else "Бессрочно"
+        vpn_name = "WireGuard"
+        config = await get_user_wg_easy(order.wg_id)
+        config_file = BufferedInputFile(
+            file=config.encode("utf-8"), 
+            filename=f"Salute_VPN_{user.telegram_id}.conf"
+        )
+
+        num_of_friend = order.friend_number
+
+        if order.is_for_friend == True:
+            is_for_friend = f" для друга №{num_of_friend}"
+            expires_at = order.created_at + relativedelta(days=order.days)
+        else:
+            is_for_friend = ""
+        
+        if expires_at > now:
+            is_active = "🟢 Активна\n"
+            lasts_to = "Действует до:"
+        else:
+            is_active = "🔴 Истекла\n"
+            lasts_to = "Действовала до:"
+
+        msg = f"📱 Подписка {vpn_name}{is_for_friend}\n"\
+            f"Статус: {is_active}\n"\
+            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"\
+            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"\
+            "───────────────────\n"\
+            "⚡ Скорость: До 1 Gbps (без ограничений)\n"\
+            "👥 Подключенных устройств: 1 из 5\n\n"\
+            "💡 Скачайте конфиг выше ☝️ и вставьте в ваше приложение:\n"\
+
+        await callback.message.delete()
+        
+        await callback.bot.send_document(
+            chat_id=user.telegram_id,
+            caption=msg,
+            document=config_file,
+            parse_mode="HTML",
+            reply_markup=back_button_to_my_subscriptions(vpn_type="wireguard", page=page)
+        )
+
+    await callback.answer()
 
 @dp.message(F.text == "🎁 Активировать пробную подписку")
 async def trial_types(message: Message):
@@ -378,7 +468,6 @@ async def callback_buy_days(callback: CallbackQuery):
     price_for_friend = prices.SUBSCRIPTION_PRICES_FOR_FRIEND[f"{days}_days"]
     parts = callback.data.split("_")
     for_friend = parts[4] if len(parts) > 4 else False
-    friend_number = 0
     order = None
 
     holder = await buy_days(telegram_id=telegram_id)
@@ -390,15 +479,15 @@ async def callback_buy_days(callback: CallbackQuery):
         if user_check.is_active_vpn is not False:
             if order.vpn_type == "vless" and for_friend == "for":
                 if user_check.num_of_friends_vless is None:
-                    friend_number += 1
+                    friend_number = 1
                 else:
-                    friend_number = user_check.num_of_friends_vless + 1
+                    friend_number = user_check.num_of_friends_vless + user_check.num_of_friends_wireguard + 1
 
             if order.vpn_type == "wireguard" and for_friend == "for":
                 if user_check.num_of_friends_wireguard is None:
-                    friend_number += 1
+                    friend_number = 1
                 else:
-                    friend_number = user_check.num_of_friends_wireguard + 1
+                    friend_number = user_check.num_of_friends_wireguard + user_check.num_of_friends_vless + 1
         else:
             await callback.message.edit_text("Вы не можете купить подписку для друга не имея своей.")
             return
@@ -429,94 +518,6 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
     await callback.answer()
 
     await referral_system_payment(telegram_id, price, callback, days, vpn_type=vpn_type, is_for_friend=False)
-
-@dp.callback_query(F.data.startswith("select_order:_"))
-async def select_order(callback: CallbackQuery, session: AsyncSession):
-
-    subscription = await get_subscription(int(callback.data.split("_")[2]), session)
-    now = datetime.now(timezone.utc)
-    order, user = subscription
-
-    if order.vpn_type == "vless":
-        expires_at = user.expires_at_vless if user.expires_at_vless else "Бессрочно"
-        vless_get = await get_user_remnawave(user.remnawave_uuid)
-        vless_key = vless_get['response']['subscriptionUrl']
-        vpn_name = "Vless"
-        num_of_friend = order.friend_number
-        
-        if order.is_for_friend == True and order.vpn_type == "vless":
-            is_for_friend = f" для друга №{num_of_friend}"
-        elif order.is_for_friend == True and order.vpn_type == "wireguard":
-            is_for_friend = f" для друга №{num_of_friend}"
-        else:
-            is_for_friend = ""
-
-        if expires_at > now:
-            is_active = "🟢 Активна\n"
-            lasts_to = "Действует до:"
-        else:
-            is_active = "🔴 Истекла\n"
-            lasts_to = "Действовала до:"
-
-        await callback.message.edit_text(
-            f"📱 Подписка: {vpn_name}{is_for_friend}\n"
-            f"Статус: {is_active}\n"
-            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"
-            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"
-            "───────────────────\n"
-            "⚡ Скорость: До 1 Gbps (без ограничений)\n"
-            "👥 Подключенных устройств: 1 из 5\n\n"
-            "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
-            f"<pre>{vless_key}</pre>",
-            parse_mode="HTML",
-            reply_markup=back_button_to_my_subscriptions(vpn_type="vless")
-        )
-
-    else:
-        expires_at = user.expires_at_wireguard if user.expires_at_wireguard else "Бессрочно"
-        vpn_name = "WireGuard"
-        config = await get_user_wg_easy(user.wg_id)
-        config_file = BufferedInputFile(
-            file=config.encode("utf-8"), 
-            filename=f"Salute_VPN_{user.telegram_id}.conf"
-        )
-
-        num_of_friend = order.friend_number
-
-        if order.is_for_friend == True and order.vpn_type == "vless":
-            is_for_friend = f" для друга №{num_of_friend}"
-        elif order.is_for_friend == True and order.vpn_type == "wireguard":
-            is_for_friend = f" для друга №{num_of_friend}"
-        else:
-            is_for_friend = ""
-        
-        if expires_at > now:
-            is_active = "🟢 Активна\n"
-            lasts_to = "Действует до:"
-        else:
-            is_active = "🔴 Истекла\n"
-            lasts_to = "Действовала до:"
-
-        msg = f"📱 Подписка: {vpn_name}{is_for_friend}\n"\
-            f"Статус: {is_active}\n"\
-            f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"\
-            f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"\
-            "───────────────────\n"\
-            "⚡ Скорость: До 1 Gbps (без ограничений)\n"\
-            "👥 Подключенных устройств: 1 из 5\n\n"\
-            "💡 Скачайте конфиг выше ☝️ и вставьте в ваше приложение:\n"\
-
-        await callback.message.delete()
-        
-        await callback.bot.send_document(
-            chat_id=user.telegram_id,
-            caption=msg,
-            document=config_file,
-            parse_mode="HTML",
-            reply_markup=back_button_to_my_subscriptions(vpn_type="wireguard")
-        )
-
-    await callback.answer()
     
 @dp.callback_query(F.data.startswith("instruction_"))
 async def callback_instruction_chosen(callback: CallbackQuery):
@@ -551,10 +552,6 @@ async def callback_instruction_chosen(callback: CallbackQuery):
             "6. Теперь можете наслаждаться интернетом!👐\n",
             reply_markup=get_wireguard_instruction_kb()
         )
-    await callback.answer()
-
-@dp.callback_query(F.data == "empty_for_back_button")
-async def empty_for_back_button(callback: CallbackQuery):
     await callback.answer()
 
 if __name__ == "__main__":

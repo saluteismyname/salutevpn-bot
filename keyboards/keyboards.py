@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from database.models import User
 import payments.prices as prices
@@ -198,36 +198,39 @@ def get_payment_kb(days: int, vpn_type: str, payment: object, is_for_friend: boo
 
     return kb.as_markup()
 
-def back_button_to_my_subscriptions(vpn_type: str):
+def back_button_to_my_subscriptions(vpn_type: str, page: int):
     kb = InlineKeyboardBuilder()
 
     kb.button(
         text="🔙 Назад",
-        callback_data=f"my_subscriptions_{vpn_type}"
+        callback_data=f"friends_subs_page_{vpn_type}_{page}"
     )
 
     return kb.as_markup()
 
-def get_subscriptions_kb(orders_with_friends: object | None, orders_without_friends: object | None):
+def get_subscriptions_kb(orders_with_friends: list, orders_without_friends: list, page: int = 1):
     kb = InlineKeyboardBuilder()
     now = datetime.now(timezone.utc)
     buttons_count = 0
-    user_has_orders_for_friends = None
+    user_has_orders_for_friends = False
 
+    # 1. Рендерим личные подписки (они выводятся всегда целиком: 1 или 2 штуки)
     if orders_without_friends:
-    
         for order, user in orders_without_friends:
             vpn_info = {
                 "vless": ("Vless", user.expires_at_vless),
                 "wireguard": ("WireGuard", user.expires_at_wireguard)
             }
             
-            pretty_name, expire_date = vpn_info.get(order.vpn_type)
+            pretty_name, expire_date = vpn_info.get(order.vpn_type, (order.vpn_type, None))
             
             if expire_date:
                 remaining_days = (expire_date - now).days
+                remaining_hours = (expire_date - now).seconds // 3600
                 if remaining_days > 0:
                     days_text = f"{format_days(remaining_days)}"
+                elif remaining_hours > 0:
+                    days_text = f"{format_hours(remaining_hours)}"
                 else:
                     days_text = "Подписка истекла"
             else:
@@ -238,36 +241,44 @@ def get_subscriptions_kb(orders_with_friends: object | None, orders_without_frie
                 text=btn_text,
                 callback_data=f"select_order:_{order.id}"
             )
+            buttons_count += 1
 
             if user.num_of_friends_vless > 0 or user.num_of_friends_wireguard > 0:
                 user_has_orders_for_friends = True 
 
-            buttons_count += 1
-
+    # 2. Кнопка-разделитель «Подписки друзей» (выводится только если есть друзья)
     if user_has_orders_for_friends:
-                kb.button(
-                    text='Подписки друзей 🔽',
-                    callback_data='empty_for_back_button'
-                )
+        kb.button(
+            text='Подписки друзей 🔽',
+            callback_data='ignore'
+        )
 
+    # 3. Пагинация для подписок друзей (по 4 штуки на страницу)
     if orders_with_friends:
+        per_page = 4
+        total_items = len(orders_with_friends)
+        total_pages = (total_items + per_page - 1) // per_page
+        page = max(1, min(page, total_pages))
+        
+        start = (page - 1) * per_page
+        end = start + per_page
+        current_friends_orders = orders_with_friends[start:end]
 
-        for order, user in orders_with_friends:
+        for order, user in current_friends_orders:
             vpn_info = {
                 "vless": "Vless",
                 "wireguard": "WireGuard"
             }
-
-            pretty_name = vpn_info.get(order.vpn_type)
-            now = datetime.now(timezone.utc)
+            pretty_name = vpn_info.get(order.vpn_type, order.vpn_type)
             expire_date = order.created_at + relativedelta(days=order.days)
             
-            if order.days:
-                remaining_days = expire_date - now
-                if remaining_days.days > 0:
-                    days_text = f"{format_days(remaining_days.days)}"
-                elif remaining_days.hours > 0:
-                    days_text = f"{format_hours(remaining_days.hours)}"
+            if expire_date:
+                remaining_days = (expire_date - now).days
+                remaining_hours = (expire_date - now).seconds // 3600
+                if remaining_days > 0:
+                    days_text = f"{format_days(remaining_days)}"
+                elif remaining_hours > 0:
+                    days_text = f"{format_hours(remaining_hours)}"
                 else:
                     days_text = "Подписка истекла"
             else:
@@ -276,14 +287,102 @@ def get_subscriptions_kb(orders_with_friends: object | None, orders_without_frie
             btn_text = f"📦 {pretty_name} | {days_text}"
             kb.button(
                 text=btn_text,
-                callback_data=f"select_order:_{order.id}"
+                callback_data=f"select_order:_{order.id}_{page}"
             )
 
+    # Настройка сетки для основных кнопок (личные подписки, разделитель и подписки друзей)
     if buttons_count > 1:
         kb.adjust(2, 1, 2)
     else:
         kb.adjust(1, 1, 2)
 
+    # 4. Блок пагинации в самом низу (индикатор на отдельной строке, стрелки ниже)
+    if orders_with_friends and total_pages > 1:
+        # Первая строка пагинации: Индикатор текущей страницы (строго 1 в ряд)
+        kb.row(
+            InlineKeyboardButton(
+                text=f"📄 {page} из {total_pages}", 
+                callback_data="ignore"
+            )
+        )
+        
+        # Вторая строка пагинации: Кнопки «Назад» и «Вперед» (по 2 в ряд)
+        nav_buttons = []
+        if page > 1:
+            nav_buttons.append(
+                InlineKeyboardButton(text="⬅️ Назад", callback_data=f"friends_subs_page_{page - 1}")
+            )
+        if page < total_pages:
+            nav_buttons.append(
+                InlineKeyboardButton(text="Вперед ➡️", callback_data=f"friends_subs_page_{page + 1}")
+            )
+            
+        if nav_buttons:
+            kb.row(*nav_buttons)
+
+    return kb.as_markup()
+
+def get_paginated_subscriptions_kb(prices_dict: dict, page: int, per_page: int, vpn_type: str, for_friend: bool):
+    kb = InlineKeyboardBuilder()
+    
+    # Превращаем словарь в список словарей: [{'days': 7, 'price': 69}, {'days': 30, 'price': 129}, ...]
+    tariffs = [
+        {"days": int(key.split("_")[0]), "price": price}
+        for key, price in prices_dict.items()
+    ]
+    
+    # Расчет пагинации
+    total_pages = (len(tariffs) + per_page - 1) // per_page
+    page = max(1, min(page, total_pages))
+    
+    start = (page - 1) * per_page
+    end = start + per_page
+    current_tariffs = tariffs[start:end]
+    
+    # 1. Кнопки тарифов текущей страницы
+    for tariff in current_tariffs:
+        days = tariff["days"]
+        price = tariff["price"]
+        friend_suffix = "_for" if for_friend else ""
+        
+        kb.row(
+            InlineKeyboardButton(
+                text=f"🗓 {days} дней — {price}₽",
+                callback_data=f"buy_{days}_days_{vpn_type}{friend_suffix}"
+            )
+        )
+    
+    # 2. Ряд навигации (если страниц больше одной)
+    if total_pages > 1:
+        nav_buttons = []
+        
+        if page > 1:
+            nav_buttons.append(
+                InlineKeyboardButton(
+                    text="⬅️ Назад", 
+                    callback_data=f"sub_page_{page - 1}_{vpn_type}_{1 if for_friend else 0}"
+                )
+            )
+            
+        nav_buttons.append(
+            InlineKeyboardButton(text=f"📄 {page} / {total_pages}", callback_data="ignore")
+        )
+        
+        if page < total_pages:
+            nav_buttons.append(
+                InlineKeyboardButton(
+                    text="Вперед ➡️", 
+                    callback_data=f"sub_page_{page + 1}_{vpn_type}_{1 if for_friend else 0}"
+                )
+            )
+            
+        kb.row(*nav_buttons)
+        
+    # 3. Кнопка возврата в меню
+    kb.row(
+        InlineKeyboardButton(text="« Назад", callback_data="back_to_menu")
+    )
+    
     return kb.as_markup()
 
 def format_days(n: int) -> str:
