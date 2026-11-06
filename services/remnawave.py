@@ -117,12 +117,12 @@ async def get_user_remnawave(remnawave_uuid: str):
             return response.json()
         except httpx.ConnectTimeout as e:
             logger.exception(
-                f"❌ Превышено время ожидания соединения с Remnawave API (ConnectTimeout){e}."
+                f"Превышено время ожидания соединения с Remnawave API (ConnectTimeout){e}."
             )
             return None
         except httpx.HTTPStatusError as e:
-            logger.error(f"❌ Ошибка ответа Remnawave API: {e.response.status_code}")
+            logger.error(f"Ошибка ответа Remnawave API: {e.response.status_code}")
             return None
         except Exception as e:
-            logger.error(f"❌ Непредвиденная ошибка при запросе к Remnawave: {e}")
+            logger.error(f"Непредвиденная ошибка при запросе к Remnawave: {e}")
             return None 

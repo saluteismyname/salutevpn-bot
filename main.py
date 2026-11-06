@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timezone
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-from keyboards.keyboards import back_button_to_my_subscriptions, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_paginated_subscriptions_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
+from keyboards.keyboards import subscription_devices_menu_kb, subscription_menu_kb, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_paginated_subscriptions_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -25,6 +25,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
 from services.buy import buy_days
+from services.devices_remnawave import get_devices_remnawave
 from services.payment import get_payment_data
 from services.remnawave import get_user_remnawave
 from services.trial_delivery import process_trial_vpn_delivery
@@ -246,7 +247,11 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
     subscription = await get_subscription(int(callback.data.split("_")[2]), session)
     now = datetime.now(timezone.utc)
     order, user = subscription
-    page = callback.data.split("_")[3]
+    parts = callback.data.split("_")
+    if len(parts) >= 4:
+        page = int(parts[3]) # Берем самый последний элемент (например, номер страницы)
+    else:
+        page = 1
 
     if order.vpn_type == "vless":
         expires_at = user.expires_at_vless if user.expires_at_vless else "Бессрочно"
@@ -254,6 +259,10 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
         vless_key = vless_get['response']['subscriptionUrl']
         vpn_name = "Vless"
         num_of_friend = order.friend_number
+        vless_user_uuid = vless_get["response"]["uuid"]
+        vless_total_devices = 3 if vless_get["response"]["hwidDeviceLimit"] == None else vless_get["response"]["hwidDeviceLimit"]
+        vless_connected_devices_pre = await get_devices_remnawave(uuid=vless_user_uuid)
+        vless_connected_devices = vless_connected_devices_pre["response"]["total"]
         
         if order.is_for_friend == True:
             is_for_friend = f" для друга №{num_of_friend}"
@@ -272,16 +281,16 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
 
         await callback.message.edit_text(
             f"📱 Подписка {vpn_name}{is_for_friend}\n"
-            f"Статус: {is_active}{page}\n"
+            f"Статус: {is_active}\n"
             f"Дата приобретения: {order.created_at.strftime('%d.%m.%Y')}\n"
             f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"
             "───────────────────\n"
             "⚡ Скорость: До 1 Gbps (без ограничений)\n"
-            "👥 Подключенных устройств: 1 из 5\n\n"
+            f"👥 Подключенных устройств: {vless_connected_devices} из {vless_total_devices}\n\n"
             "💡 Скопируйте ключ ниже и вставьте в ваше приложение:\n"
             f"<pre>{vless_key}</pre>",
             parse_mode="HTML",
-            reply_markup=back_button_to_my_subscriptions(vpn_type="vless", page=page)
+            reply_markup=subscription_menu_kb(vpn_type="vless", page=page, order_id=order.id, uuid=vless_user_uuid)
         )
 
     else:
@@ -314,7 +323,6 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             f"{lasts_to} {expires_at.strftime('%d.%m.%Y')}\n\n"\
             "───────────────────\n"\
             "⚡ Скорость: До 1 Gbps (без ограничений)\n"\
-            "👥 Подключенных устройств: 1 из 5\n\n"\
             "💡 Скачайте конфиг выше ☝️ и вставьте в ваше приложение:\n"\
 
         await callback.message.delete()
@@ -324,8 +332,21 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
             caption=msg,
             document=config_file,
             parse_mode="HTML",
-            reply_markup=back_button_to_my_subscriptions(vpn_type="wireguard", page=page)
+            reply_markup=subscription_menu_kb(vpn_type="wireguard", page=page)
         )
+
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("edit_devices_"))
+async def edit_devices(callback: CallbackQuery):
+    user_id = callback.data.split("_")[-1] 
+    user_uuid = callback.data.split("_")[-2] 
+    devices = await get_devices_remnawave(uuid=user_uuid)
+    
+    await callback.message.answer(
+        "Редактировать список устройств:",
+        reply_markup=subscription_devices_menu_kb(devices=devices, order_id=user_id)
+    )
 
     await callback.answer()
 
@@ -456,7 +477,7 @@ async def callback_period_message(callback: CallbackQuery):
                 "Выберите срок подписки WireGuard для друга: \n" \
                 "ℹ️ Если Вы хотите продлить имеющуюся подписку друга, нажмите \"Мои подписки\"",
                 reply_markup=get_buy_for_friend_kb_wireguard()
-            )
+        )
     await callback.answer()
 
 @dp.callback_query(F.data.startswith("buy_"))

@@ -7,6 +7,7 @@ import payments.prices as prices
 from database.engine import session_maker
 from sqlalchemy import select
 from dateutil.relativedelta import relativedelta
+from rich import print as rprint
 
 def get_start_kb() -> ReplyKeyboardMarkup:
     
@@ -198,13 +199,42 @@ def get_payment_kb(days: int, vpn_type: str, payment: object, is_for_friend: boo
 
     return kb.as_markup()
 
-def back_button_to_my_subscriptions(vpn_type: str, page: int):
+def subscription_menu_kb(vpn_type: str, page: int, order_id: str, uuid: str):
     kb = InlineKeyboardBuilder()
+
+    kb.button(
+        text="📱Редактировать устройства",
+        callback_data=f"edit_devices_{uuid}_{order_id}"
+    )
 
     kb.button(
         text="🔙 Назад",
         callback_data=f"friends_subs_page_{vpn_type}_{page}"
     )
+
+    kb.adjust(1)
+
+    return kb.as_markup()
+
+def subscription_devices_menu_kb(devices: object, order_id: int):
+    kb = InlineKeyboardBuilder()   
+    rprint(devices)
+    count = 0
+
+    for device in devices['response']['devices']:
+        count += 1
+        kb.button(
+            text=f"📱{count}: {device['userAgent']}",
+            callback_data=f"select_device:_{count}"
+        )
+        rprint(device)
+    
+    kb.button(
+        text="🔙 Назад",
+        callback_data=f"select_order:_{order_id}"
+    )
+
+    kb.adjust(1)
 
     return kb.as_markup()
 
