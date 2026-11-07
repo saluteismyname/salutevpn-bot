@@ -13,7 +13,7 @@ from aiogram import Bot, Dispatcher, Router, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.types import BufferedInputFile, Message, CallbackQuery
+from aiogram.types import BufferedInputFile, FSInputFile, Message, CallbackQuery
 from aiogram import html
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.filters.callback_data import CallbackData
@@ -63,6 +63,8 @@ dp = Dispatcher()
 
 # Роутер
 router = Router()
+
+HEADER_PHOTO = FSInputFile("salute_header.jpg")
 
 DATABASE_URL = f"postgresql+asyncpg://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -121,7 +123,7 @@ async def start(message: Message, command: CommandObject, session: AsyncSession)
 
     await referral_system_registration(user_id, message, command, session)
 
-    await message.answer(html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
+    await message.answer_photo(photo=HEADER_PHOTO,caption=html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
             "🛍️ После приобретения товара Вы получите: \n\n"
             "✅ Персональную ссылку-подписку, передающуюся только в Ваши руки с удобным для Вас сроком\n"
             "✅ Высокую скорость интернета \n"
@@ -135,7 +137,7 @@ async def start(message: Message, command: CommandObject, session: AsyncSession)
 
 @dp.callback_query(F.data == "to_main_menu")
 async def start(callback: CallbackQuery):
-    await callback.message.answer(html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
+    await callback.message.answer_photo(photo=HEADER_PHOTO,caption=html.bold("Здравствуйте! Вас приветствует SALUTE VPN 👋 \n\n") +
         "🛍️ После приобретения товара Вы получите: \n\n"
         "✅ Персональную ссылку-подписку или конфиг, передающиеся только в Ваши руки сроком на 6 или 12 месяцев \n"
         "✅ Высокую скорость интернета \n"
