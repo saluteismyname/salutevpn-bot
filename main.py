@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timezone
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import logging
-from keyboards.keyboards import subscription_devices_menu_kb, subscription_menu_kb, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_paginated_subscriptions_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
+from keyboards.keyboards import subscription_device_menu_kb, subscription_devices_menu_kb, subscription_menu_kb, get_buy_for_friend_kb_vless, get_buy_for_friend_kb_wireguard, get_buy_type_kb, get_paginated_subscriptions_kb, get_payment_kb, get_subscriptions_kb, get_trial_type_kb
 from middlewares.db import ShadowRegistrationMiddleware
 import payments.prices as prices
 import os
@@ -25,7 +25,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, async_session, create_async_engine
 from database.models import Order, User
 from services.buy import buy_days
-from services.devices_remnawave import get_devices_remnawave
+from services.devices_remnawave import delete_devices_remnawave, get_devices_remnawave
 from services.payment import get_payment_data
 from services.remnawave import get_user_remnawave
 from services.trial_delivery import process_trial_vpn_delivery
@@ -339,14 +339,61 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
 
 @dp.callback_query(F.data.startswith("edit_devices_"))
 async def edit_devices(callback: CallbackQuery):
-    user_id = callback.data.split("_")[-1] 
+    order_id = callback.data.split("_")[-1] 
     user_uuid = callback.data.split("_")[-2] 
+    count = callback.data.split("_")[-3]
     devices = await get_devices_remnawave(uuid=user_uuid)
     
-    await callback.message.answer(
-        "Редактировать список устройств:",
-        reply_markup=subscription_devices_menu_kb(devices=devices, order_id=user_id)
+    if devices.get('response', {}).get('total', {}):
+        text = "Редактировать устройства: "
+    else:
+        text = "У Вас ещё нет подключённых устройств."
+
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=subscription_devices_menu_kb(devices=devices, uuid=user_uuid, order_id=order_id)
     )
+
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("select_device:_"))
+async def edit_device(callback: CallbackQuery):
+    order_id = callback.data.split("_")[-1]
+    user_uuid = callback.data.split("_")[-2]
+    count = int(callback.data.split("_")[-3])
+    
+    devices = await get_devices_remnawave(uuid=user_uuid)
+    devices_arr = []
+
+    for device in devices['response']['devices']:
+        devices_arr.append(device)
+
+    hwid = devices_arr[count - 1]['hwid']
+    user = await get_user_remnawave(remnawave_uuid=user_uuid)
+    uuid = user['response']['uuid']
+
+    text = f"HWID устройства: {devices_arr[count - 1]['hwid']}\n\n"\
+            f"Платформа: {devices_arr[count - 1]['platform']}\n\n"\
+            f"Версия OC: {devices_arr[count - 1]['osVersion']}\n\n"\
+            f"Модель устройства: {devices_arr[count - 1]['deviceModel']}\n\n"\
+            f"Приложение: {devices_arr[count - 1]['userAgent']}"\
+    
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=subscription_device_menu_kb(uuid=user_uuid, order_id=order_id, device_id=count),
+        parse_mode="HTML"
+    )
+
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("delete_device_"))
+async def delete_device(callback: CallbackQuery):
+    device_id = callback.data.split("_")[2]
+    uuid = callback.data.split("_")[3]
+
+    response = await delete_devices_remnawave(device_id=device_id, uuid=uuid)
+
+    await callback.message.edit_text("✅ Устройство было удалено.")
 
     await callback.answer()
 

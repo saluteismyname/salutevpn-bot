@@ -216,22 +216,37 @@ def subscription_menu_kb(vpn_type: str, page: int, order_id: str, uuid: str):
 
     return kb.as_markup()
 
-def subscription_devices_menu_kb(devices: object, order_id: int):
+def subscription_devices_menu_kb(devices: object, order_id: int, uuid: str):
     kb = InlineKeyboardBuilder()   
-    rprint(devices)
     count = 0
 
     for device in devices['response']['devices']:
         count += 1
         kb.button(
             text=f"📱{count}: {device['userAgent']}",
-            callback_data=f"select_device:_{count}"
-        )
-        rprint(device)
-    
+            callback_data=f"select_device:_{count}_{uuid}_{order_id}"
+        )    
     kb.button(
         text="🔙 Назад",
         callback_data=f"select_order:_{order_id}"
+    )
+
+    kb.adjust(1)
+
+    return kb.as_markup()
+
+def subscription_device_menu_kb(uuid: str, order_id: int, device_id: str):
+    kb = InlineKeyboardBuilder()   
+
+    if uuid:
+        kb.button(
+            text="❌Удалить устройство",
+            callback_data=f"delete_device_{device_id}_{uuid}"
+        )
+    
+    kb.button(
+        text="🔙 Назад",
+        callback_data=f"edit_devices_{uuid}_{order_id}"
     )
 
     kb.adjust(1)
