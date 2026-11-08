@@ -1,4 +1,5 @@
 import ipaddress
+import json
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,8 @@ class Settings(BaseSettings):
     base_webhook_url: str
     wg_easy_password: SecretStr
     wg_easy_url: str
+    wg_panels: str
+    current_wg_panel: str
     yookassa_account_id: str
     yookassa_secret_key: SecretStr
     yookassa_networks: str | list[ipaddress.IPv4Network | ipaddress.IPv6Network]
@@ -42,6 +45,13 @@ class Settings(BaseSettings):
                 if net.strip()
             ]
         return value
+    
+    @property
+    def wg_panels_dict(self) -> dict:
+        try:
+            return json.loads(self.wg_panels)
+        except Exception:
+            return {}
 
 
 # При импорте файла сразу создастся 

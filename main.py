@@ -296,9 +296,9 @@ async def select_order(callback: CallbackQuery, session: AsyncSession):
     else:
         expires_at = user.expires_at_wireguard if user.expires_at_wireguard else "Бессрочно"
         vpn_name = "WireGuard"
-        config = await get_user_wg_easy(order.wg_id)
+        config = await get_user_wg_easy(order.wg_id, wg_panel=order.wg_panel)
         config_file = BufferedInputFile(
-            file=config.encode("utf-8"), 
+            file=config.encode("utf-8"),
             filename=f"Salute_VPN_{user.telegram_id}.conf"
         )
 

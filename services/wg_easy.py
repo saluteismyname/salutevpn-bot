@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import json
+import os
 import random
+from rich import print as rprint
 
 import httpx
 import asyncio
@@ -19,10 +21,14 @@ load_dotenv()
 password = config.wg_easy_password.get_secret_value()
 
 url = config.wg_easy_url
+current_node = config.current_wg_panel
+wg_panels = config.wg_panels_dict
 
 async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_friend: bool, num_of_friends_wireguard: int | None):
     
-    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=wg_panels[current_node], verify=False, timeout=10.0) as client:
+        rprint(wg_panels)
+        
         # Авторизация
         login_response = await client.post(
             "/api/session",
@@ -63,9 +69,9 @@ async def create_user_wg_easy(telegram_id: int, days_to_add: datetime, is_for_fr
 
         return pointed_user['id']
 
-async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_add: datetime):
+async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_add: datetime, wg_panel: str):
 
-    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=wg_panel, verify=False, timeout=10.0) as client:
         # Авторизация
         login_response = await client.post(
             "/api/session",
@@ -82,7 +88,6 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
             
         pointed_user = None
         
-        # name = f"{expires_at_fix}_{telegram_id}"
         if config.testing:
             name = f"test_{expires_at_fix}_{telegram_id}"
         else:
@@ -107,9 +112,9 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
                 json={"name": f"test_{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
             )
 
-async def get_user_wg_easy(wg_id: str):
+async def get_user_wg_easy(wg_id: str, wg_panel: str):
     
-    async with httpx.AsyncClient(base_url=url, verify=False, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=wg_panel, verify=False, timeout=10.0) as client:
         # Авторизация
         login_response = await client.post(
             "/api/session",

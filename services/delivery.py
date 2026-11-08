@@ -126,9 +126,8 @@ async def process_vpn_delivery(
         if not user.wg_id: 
             expires_at_fix = None
             user.expires_at_wireguard = now + days_to_add
-
             try:
-                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None)
+                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None, wg_panel=order.wg_panel)
                 user.wg_id = wg_user
                 user.is_first_time = False
                 try:
@@ -145,7 +144,7 @@ async def process_vpn_delivery(
             expires_at_fix = user.expires_at_wireguard.strftime("%d.%m.%Y")
             user.expires_at_wireguard += days_to_add
             try:
-                await edit_user_wg_easy(user.telegram_id, expires_at_fix, days_to_add)
+                await edit_user_wg_easy(user.telegram_id, expires_at_fix, days_to_add, wg_panel=order.wg_panel)
             except Exception as e:
                 logger.error(f"Ошибка создания пользователя в WG Easy: {e}")
                 error_details = traceback.format_exc()
@@ -170,7 +169,7 @@ async def process_vpn_delivery(
             moscow_time = user.expires_at_wireguard + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
-            config = await get_user_wg_easy(wg_id = user.wg_id)
+            config = await get_user_wg_easy(wg_id = user.wg_id, wg_panel=order.wg_panel)
             config_file = BufferedInputFile(
                 file=config.encode("utf-8"), 
                 filename=f"Salute_VPN_{user.telegram_id}.conf"
@@ -283,7 +282,7 @@ async def process_vpn_delivery(
             moscow_time = order.created_at + relativedelta(days=order.days) + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
-            config = await get_user_wg_easy(wg_id = order.wg_id)
+            config = await get_user_wg_easy(wg_id = order.wg_id, wg_panel=order.wg_panel)
             config_file = BufferedInputFile(
                 file=config.encode("utf-8"), 
                 filename=f"Salute_VPN_{user.telegram_id}.conf"

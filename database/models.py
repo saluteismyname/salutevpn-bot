@@ -19,6 +19,7 @@ class User(Base):
     remnawave_uuid: Mapped[str | None] = mapped_column(String(255))
     wg_id: Mapped[str | None] = mapped_column(String(255))
 
+
     referrer_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.telegram_id"))
     num_of_friends_vless: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     num_of_friends_wireguard: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -67,6 +68,7 @@ class Order(Base):
 
     remnawave_uuid: Mapped[str | None] = mapped_column(String(255), nullable=True)
     wg_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    wg_panel: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -1,9 +1,14 @@
+from dotenv import load_dotenv
+
+from config import config
 from payments import prices
 from database.engine import session_maker
 from database.models import User
 from sqlalchemy import select
 
 from payments.payments import create_payment
+
+load_dotenv()
 
 async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_friend: bool, friend_number: int | None):
    
@@ -20,9 +25,13 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
 
         bonus_balance = user.bonus_balance 
 
-
     if bonus_balance == 0:
-    
+
+        if vpn_type == "wireguard":
+            wg_panel = config.wg_panels_dict[config.current_wg_panel]
+        else:
+            wg_panel = None
+        
         payment_without_bonuses = await create_payment(
             session=session,
             telegram_id=telegram_id,
@@ -33,7 +42,8 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
             friend_number=friend_number,
             is_for_friend=is_for_friend,
             remnawave_uuid=None,
-            wg_id=None
+            wg_id=None,
+            wg_panel=wg_panel
         )
 
         payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']
@@ -47,6 +57,10 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
         
     elif bonus_balance > 0 and bonus_balance < base_price:
         final_amount = base_price - int(bonus_balance) # сколько бонусов спишем (все доступные)
+        if vpn_type == "wireguard":
+            wg_panel = config.wg_panels_dict[config.current_wg_panel]
+        else:
+            wg_panel = None
 
         payment_with_bonuses = await create_payment(
             session=session,
@@ -58,7 +72,8 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
             friend_number=friend_number,
             is_for_friend=is_for_friend,
             remnawave_uuid=None,
-            wg_id=None
+            wg_id=None,
+            wg_panel=wg_panel
         )
 
         payment_without_bonuses = await create_payment(
@@ -71,7 +86,8 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
             friend_number=friend_number,
             is_for_friend=is_for_friend,
             remnawave_uuid=None,
-            wg_id=None
+            wg_id=None,
+            wg_panel=wg_panel
         )
         
         payment_with_bonuses_url = payment_with_bonuses['confirmation']['confirmation_url']
@@ -88,6 +104,10 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
         }
 
     elif bonus_balance > 0 and bonus_balance >= base_price:
+        if vpn_type == "wireguard":
+            wg_panel = config.wg_panels_dict[config.current_wg_panel]
+        else:
+            wg_panel = None
 
         payment_without_bonuses = await create_payment(
             session=session,
@@ -99,7 +119,8 @@ async def get_payment_data(telegram_id: int, days: int, vpn_type: str, is_for_fr
             friend_number=friend_number,
             is_for_friend=is_for_friend,
             remnawave_uuid=None,
-            wg_id=None
+            wg_id=None,
+            wg_panel=wg_panel
         )
 
         payment_without_bonuses_url = payment_without_bonuses['confirmation']['confirmation_url']

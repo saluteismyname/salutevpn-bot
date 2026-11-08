@@ -28,6 +28,10 @@ async def process_trial_vpn_delivery(
     user_query = select(User).where(User.telegram_id == telegram_id)
     user_result = await session.execute(user_query)
     user = user_result.scalar_one()
+
+    order_query = select(Order).where(Order.telegram_id == telegram_id)
+    order_result = await session.execute(order_query)
+    order = order_result.scalar_one()
     
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     days_to_add = relativedelta(days=3)
@@ -98,7 +102,7 @@ async def process_trial_vpn_delivery(
                 user.expires_at_wireguard = now + days_to_add
             else:
                 user.expires_at_wireguard += days_to_add
-            user.is_trial_available_wireguard = False
+                user.is_trial_available_wireguard = False
             try:
                 wg_user = await create_user_wg_easy(user.telegram_id, days_to_add=days_to_add)
                 try:
@@ -116,8 +120,8 @@ async def process_trial_vpn_delivery(
             expires_at_fix = user.expires_at_wireguard.strftime("%d.%m.%Y")
             user.expires_at_wireguard += days_to_add
             user.is_trial_available_wireguard = False
-            
-            await edit_user_wg_easy(telegram_id=telegram_id, expires_at_fix=expires_at_fix, days_to_add=days_to_add)        
+
+            await edit_user_wg_easy(telegram_id=telegram_id, expires_at_fix=expires_at_fix, days_to_add=days_to_add, wg_panel=order.wg_panel)        
         try:
             await session.commit()
             logger.info(f"Пробная подписка для пользователя {user.telegram_id} с типом VPN WireGuard успешно обновлена!")
@@ -133,7 +137,7 @@ async def process_trial_vpn_delivery(
             moscow_time = user.expires_at_wireguard + timedelta(hours=3)
             readable_date = moscow_time.strftime("%d.%m.%Y %H:%M")
 
-            config = await get_user_wg_easy(wg_id = user.wg_id)
+            config = await get_user_wg_easy(wg_id = user.wg_id, wg_panel=order.wg_panel)
             config_file = BufferedInputFile(
                 file=config.encode("utf-8"), 
                 filename=f"Salute_VPN_{user.telegram_id}.conf"
