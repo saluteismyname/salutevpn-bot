@@ -127,8 +127,8 @@ def get_type_subscriptions_kb() -> InlineKeyboardMarkup:
 def get_instruction_kb() -> InlineKeyboardMarkup:
 
     kb = InlineKeyboardBuilder()
-    kb.button(text="Vless", callback_data="vless_instruction")
-    kb.button(text="WireGuard / AmneziaWG", callback_data="wireguard_instruction")
+    kb.button(text="Vless", callback_data="instruction_vless")
+    kb.button(text="WireGuard / AmneziaWG", callback_data="instruction_wireguard")
 
     kb.adjust(1)
 

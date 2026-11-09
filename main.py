@@ -590,7 +590,7 @@ async def process_pay_full_bonuses(callback: CallbackQuery):
 @dp.callback_query(F.data.startswith("instruction_"))
 async def callback_instruction_chosen(callback: CallbackQuery):
     vpn_type = callback.data.split("_")[1]
-    if vpn_type:
+    if vpn_type == "vless":
         await callback.message.edit_text(
             "1. Скачайте Happ Plus, INCY или V2RayTun\n"
             "2. Скопируйте ссылку-подписку из сообщения о покупке\n"
