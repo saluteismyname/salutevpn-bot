@@ -127,7 +127,7 @@ async def process_vpn_delivery(
             expires_at_fix = None
             user.expires_at_wireguard = now + days_to_add
             try:
-                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None, wg_panel=order.wg_panel)
+                wg_user = await create_user_wg_easy(user.telegram_id, days_to_add, is_for_friend=False, num_of_friends_wireguard=None)
                 user.wg_id = wg_user
                 user.is_first_time = False
                 try:

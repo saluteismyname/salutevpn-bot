@@ -100,6 +100,10 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
         if pointed_user and expires_at_fix and config.testing == "False":
             expires_at_pre = datetime.strptime(expires_at_fix, "%d.%m.%Y")
             time_calculated = expires_at_pre + days_to_add
+            await client.post(
+                f"/api/wireguard/client/{pointed_user['id']}/enable",
+                json={"name": f"{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
+            )
             await client.put(
                 f"/api/wireguard/client/{pointed_user['id']}/name",
                 json={"name": f"{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
@@ -107,6 +111,12 @@ async def edit_user_wg_easy(telegram_id: int, expires_at_fix: datetime, days_to_
         elif pointed_user and expires_at_fix and config.testing == "True":
             expires_at_pre = datetime.strptime(expires_at_fix, "%d.%m.%Y")
             time_calculated = expires_at_pre + days_to_add
+
+            await client.post(
+                f"/api/wireguard/client/{pointed_user['id']}/enable",
+                json={"name": f"test_{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
+            )
+
             await client.put(
                 f"/api/wireguard/client/{pointed_user['id']}/name",
                 json={"name": f"test_{time_calculated.strftime('%d.%m.%Y')}_{telegram_id}"}
