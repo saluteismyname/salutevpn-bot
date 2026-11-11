@@ -28,4 +28,3 @@ async def buy_days(telegram_id: int):
             "user_check": user_check,
             "order": order
         }
-
