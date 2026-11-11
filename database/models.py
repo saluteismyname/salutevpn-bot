@@ -63,7 +63,7 @@ class Order(Base):
 
     status: Mapped[str] = mapped_column(String(50), default="pending")
 
-    is_for_friend: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_for_friend: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     remnawave_uuid: Mapped[str | None] = mapped_column(String(255), nullable=True)
     wg_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
